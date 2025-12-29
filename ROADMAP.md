@@ -25,7 +25,7 @@
 ## Phase 1: Nexus Core ⏳
 
 ### Domain
-- [ ] Event model (sealed interfaces, records)
+- [X] Event model (sealed interfaces, records)
 - [ ] Workflow model (Trigger, Condition, Action)
 
 ### Infrastructure
@@ -69,3 +69,13 @@
 - [ ] Spring AI integration
 - [ ] Event replay
 - [ ] Monitoring (Prometheus/Grafana)
+
+---
+
+## Phase 6: Plugin Architecture ⏳
+
+- [ ] Open Event/Context interfaces (non-sealed level 1)
+- [ ] Plugin JAR loading system
+- [ ] Hot-reload via endpoint
+- [ ] Plugin lifecycle management
+- [ ] Sealed interfaces at level 2 (per plugin)
