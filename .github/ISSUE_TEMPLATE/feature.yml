@@ -1,0 +1,71 @@
+name: "✨ Feature"
+description: "Propose a new feature"
+title: "[Feature]: "
+labels: ["feature"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to propose a new feature!
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: A clear and concise description of the feature.
+      placeholder: "I would like to..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: motivation
+    attributes:
+      label: Motivation
+      description: Why is this feature needed? What problem does it solve?
+      placeholder: "This would help because..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution
+      description: How do you think this should be implemented?
+      placeholder: "I think we could..."
+    validations:
+      required: false
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: Any alternative solutions or features you've considered?
+      placeholder: "I also thought about..."
+    validations:
+      required: false
+
+  - type: dropdown
+    id: module
+    attributes:
+      label: Module
+      description: Which module does this feature relate to?
+      options:
+        - nexus-core
+        - nexus-sdk
+        - nexus-adapter-discord
+        - nexus-adapter-github
+        - nexus-adapter-minecraft
+        - nexus-dashboard
+        - infrastructure
+        - documentation
+        - other
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context
+      description: Any other context, screenshots, or examples?
+    validations:
+      required: false

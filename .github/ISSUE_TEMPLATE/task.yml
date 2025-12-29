@@ -1,0 +1,94 @@
+name: "📋 Task"
+description: "A development task or chore"
+title: "[Task]: "
+labels: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this template for development tasks, refactoring, or chores.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: What needs to be done?
+      placeholder: "We need to..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance Criteria
+      description: How do we know this task is complete?
+      placeholder: |
+        - [ ] Criterion 1
+        - [ ] Criterion 2
+        - [ ] Tests pass
+    validations:
+      required: true
+
+  - type: dropdown
+    id: type
+    attributes:
+      label: Task Type
+      description: What kind of task is this?
+      options:
+        - feature
+        - refactor
+        - test
+        - docs
+        - infra
+        - learning
+    validations:
+      required: true
+
+  - type: dropdown
+    id: module
+    attributes:
+      label: Module
+      description: Which module does this task relate to?
+      options:
+        - nexus-core
+        - nexus-sdk
+        - nexus-adapter-discord
+        - nexus-adapter-github
+        - nexus-adapter-minecraft
+        - nexus-dashboard
+        - infrastructure
+        - documentation
+        - other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      description: How urgent is this?
+      options:
+        - low
+        - normal
+        - high
+    validations:
+      required: false
+
+  - type: textarea
+    id: resources
+    attributes:
+      label: Resources / References
+      description: Any links to documentation, articles, or related issues?
+      placeholder: |
+        - https://docs.spring.io/...
+        - Related to #123
+    validations:
+      required: false
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: Additional Notes
+      description: Anything else to consider?
+    validations:
+      required: false
