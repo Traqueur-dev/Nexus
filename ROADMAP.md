@@ -11,14 +11,14 @@
 ## Phase 0: Project Setup 🔄
 
 ### Repository
-- [ ] Gradle multi-module setup
-- [ ] `nexus-core` module
-- [ ] GitHub Actions CI
+- [X] Gradle multi-module setup
+- [X] `nexus-core` module
+- [X] GitHub Actions CI
 
 ### First Code
-- [ ] Spring Boot 4 app with Virtual Threads
-- [ ] `/health` endpoint
-- [ ] First test
+- [X] Spring Boot 4 app with Virtual Threads
+- [X] `/health` endpoint
+- [X] First test
 
 ---
 
