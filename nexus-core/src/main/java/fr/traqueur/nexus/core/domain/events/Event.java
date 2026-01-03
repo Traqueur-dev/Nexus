@@ -27,6 +27,14 @@ public sealed interface Event permits DiscordEvent, GitHubEvent, InternalEvent {
             }
         }
 
+        public static Id fromString(String id) {
+            String[] parts = id.split("-");
+            if (parts.length != 2) {
+                throw new IllegalArgumentException("Invalid id format");
+            }
+            return new Id(parts[0], parts[1]);
+        }
+
         @Override
         public String toString() {
             return String.format("%s-%s", prefix, instance);
