@@ -1,12 +1,14 @@
 package fr.traqueur.nexus.core.domain.events;
 
 import fr.traqueur.nexus.core.domain.events.discord.DiscordEvent;
+import fr.traqueur.nexus.core.domain.events.github.GitHubEvent;
+import fr.traqueur.nexus.core.domain.events.internal.InternalEvent;
 
 import java.security.SecureRandom;
 import java.time.Instant;
 import java.util.Objects;
 
-public sealed interface Event permits DiscordEvent {
+public sealed interface Event permits DiscordEvent, GitHubEvent, InternalEvent {
 
     record Id(String prefix, String instance) {
 
