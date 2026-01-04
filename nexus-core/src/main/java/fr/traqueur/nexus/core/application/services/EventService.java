@@ -1,7 +1,7 @@
 package fr.traqueur.nexus.core.application.services;
 
 import fr.traqueur.nexus.core.domain.events.Event;
-import fr.traqueur.nexus.core.infrastructure.persistence.EventMapper;
+import fr.traqueur.nexus.core.application.mapper.EventMapper;
 import fr.traqueur.nexus.core.infrastructure.persistence.repositories.EventEntityRepository;
 import org.springframework.stereotype.Service;
 

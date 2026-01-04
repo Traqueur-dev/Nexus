@@ -1,6 +1,7 @@
 package fr.traqueur.nexus.core.infrastructure.persistence;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import fr.traqueur.nexus.core.application.mapper.EventMapper;
 import fr.traqueur.nexus.core.domain.events.Context;
 import fr.traqueur.nexus.core.domain.events.Event;
 import fr.traqueur.nexus.core.domain.events.discord.DiscordContext;
