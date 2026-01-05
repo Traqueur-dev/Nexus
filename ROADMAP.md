@@ -45,7 +45,7 @@
 - [ ] Discord adapter
 - [ ] GitHub adapter
 - [ ] Minecraft adapter
-
+- [ ] Dynamic queue provisioning (adapters auto-register at runtime)
 ---
 
 ## Phase 3: Dashboard ⏳

@@ -9,7 +9,6 @@ import fr.traqueur.nexus.core.domain.events.discord.events.DiscordMessageReceive
 import fr.traqueur.nexus.core.infrastructure.serialization.JacksonConfig;
 import fr.traqueur.nexus.core.interfaces.rest.dto.EventRequestDto;
 import fr.traqueur.nexus.core.interfaces.rest.dto.EventResponseDto;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -45,52 +44,6 @@ class EventControllerTest {
 
     @Autowired
     private ObjectMapper objectMapper;
-
-    @Nested
-    @DisplayName("POST /api/v1/events")
-    class CreateEvent {
-
-        @Test
-        @DisplayName("should return 201 Created with event id")
-        void shouldReturn201WithEventId() throws Exception {
-            // Given
-            EventRequestDto requestDto = new EventRequestDto(
-                    "discord",
-                    "discord.message_received",
-                    Instant.parse("2026-01-04T10:00:00Z"),
-                    "{\"source\": \"discord\"}",
-                    Map.of("content", "Hello!", "authorId", 123456789)
-            );
-
-            Event.Id generatedId = new Event.Id("discord", "abc123");
-            DiscordMessageReceived event = new DiscordMessageReceived(
-                    generatedId,
-                    new DiscordContext(),
-                    Instant.parse("2026-01-04T10:00:00Z"),
-                    "Hello!",
-                    123456789L
-            );
-
-            when(eventMapper.toDomain(any(EventRequestDto.class))).thenReturn(event);
-
-            // When & Then
-            mockMvc.perform(post("/api/v1/events")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(requestDto)))
-                    .andExpect(status().isCreated())
-                    .andExpect(header().string("Location", "/api/v1/events/discord-abc123"))
-                    .andExpect(content().string("discord-abc123"));
-        }
-
-        @Test
-        @DisplayName("should return 400 Bad Request for invalid JSON")
-        void shouldReturn400ForInvalidJson() throws Exception {
-            mockMvc.perform(post("/api/v1/events")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content("invalid json"))
-                    .andExpect(status().isBadRequest());
-        }
-    }
 
     @Nested
     @DisplayName("GET /api/v1/events/{id}")

@@ -29,4 +29,9 @@ public class EventService {
                 .map(eventMapper::toDomain);
     }
 
+    public Optional<Event> findLatestBySource(String source) {
+        return eventEntityRepository.findFirstBySourceOrderByTimestampDesc(source)
+                .map(eventMapper::toDomain);
+    }
+
 }
