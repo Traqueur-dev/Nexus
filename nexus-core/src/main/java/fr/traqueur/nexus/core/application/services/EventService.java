@@ -2,6 +2,7 @@ package fr.traqueur.nexus.core.application.services;
 
 import fr.traqueur.nexus.core.domain.events.Event;
 import fr.traqueur.nexus.core.application.mapper.EventMapper;
+import fr.traqueur.nexus.core.infrastructure.persistence.entities.EventEntity;
 import fr.traqueur.nexus.core.infrastructure.persistence.repositories.EventEntityRepository;
 import org.springframework.stereotype.Service;
 
@@ -19,7 +20,7 @@ public class EventService {
     }
 
     public void save(Event event) {
-        var eventEntity = eventMapper.toEntity(event);
+        EventEntity eventEntity = eventMapper.toEntity(event);
         eventEntityRepository.save(eventEntity);
     }
 
