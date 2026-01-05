@@ -29,7 +29,7 @@
 - [ ] Workflow model (Trigger, Condition, Action)
 
 ### Infrastructure
-- [ ] PostgreSQL + Flyway
+- [] PostgreSQL + Flyway
 - [ ] RabbitMQ integration
 - [ ] Redis cache
 
