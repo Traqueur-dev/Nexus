@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.containers.RabbitMQContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
@@ -28,6 +29,10 @@ class EventServiceIntegrationTest {
     @Container
     @ServiceConnection
     static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:17-alpine");
+
+    @Container
+    @ServiceConnection
+    static RabbitMQContainer rabbitmq = new RabbitMQContainer("rabbitmq:4-alpine");
 
     @Autowired
     private EventService eventService;
@@ -137,5 +142,4 @@ class EventServiceIntegrationTest {
         assertThat(retrieved.get().timestamp().getEpochSecond())
                 .isEqualTo(timestamp.getEpochSecond());
     }
-
 }

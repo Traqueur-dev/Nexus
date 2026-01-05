@@ -9,7 +9,6 @@ import fr.traqueur.nexus.core.interfaces.rest.exceptions.EventNotFoundException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.net.URI;
 import java.util.Optional;
 
 @RestController
@@ -22,13 +21,6 @@ public class EventController {
     public EventController(EventService eventService, EventMapper eventMapper) {
         this.eventService = eventService;
         this.eventMapper = eventMapper;
-    }
-
-    @PostMapping
-    public ResponseEntity<String> createEvent(@RequestBody EventRequestDto eventRequestDto){
-        Event event = eventMapper.toDomain(eventRequestDto);
-        eventService.save(event);
-        return ResponseEntity.created(URI.create("/api/v1/events/" + event.id())).body(event.id().toString());
     }
 
     @GetMapping("/{id}")

@@ -10,4 +10,7 @@ module fr.traqueur.nexus.core {
     requires com.fasterxml.jackson.databind;
     requires spring.data.jpa;
     requires com.fasterxml.jackson.datatype.jsr310;
+    requires spring.amqp;
+    requires spring.rabbit;
+    requires org.slf4j;
 }
