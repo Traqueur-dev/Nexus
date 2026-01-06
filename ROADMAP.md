@@ -26,11 +26,11 @@
 
 ### Domain
 - [X] Event model (sealed interfaces, records)
-- [ ] Workflow model (Trigger, Condition, Action)
+- [X] Workflow model (Trigger, Condition, Action)
 
 ### Infrastructure
-- [] PostgreSQL + Flyway
-- [ ] RabbitMQ integration
+- [X] PostgreSQL + Flyway
+- [X] RabbitMQ integration
 - [ ] Redis cache
 
 ### API
