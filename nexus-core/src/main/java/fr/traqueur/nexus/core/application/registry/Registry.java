@@ -1,4 +1,4 @@
-package fr.traqueur.nexus.core.infrastructure.registry;
+package fr.traqueur.nexus.core.application.registry;
 
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;

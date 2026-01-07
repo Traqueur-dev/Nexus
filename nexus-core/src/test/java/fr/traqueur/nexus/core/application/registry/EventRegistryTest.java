@@ -1,6 +1,7 @@
-package fr.traqueur.nexus.core.infrastructure.registry;
+package fr.traqueur.nexus.core.application.registry;
 
 import fr.traqueur.nexus.core.domain.events.Event;
+import fr.traqueur.nexus.core.domain.events.EventMetadata;
 import fr.traqueur.nexus.core.domain.events.discord.events.DiscordMessageReceived;
 import fr.traqueur.nexus.core.domain.events.github.events.GitHubPushReceived;
 import fr.traqueur.nexus.core.domain.events.internal.events.ScheduledEvent;
@@ -9,15 +10,15 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 class EventRegistryTest {
 
-    private EventRegistry registry;
+    private Registry<Event, EventMetadata> registry;
 
     @BeforeEach
     void setUp() {
-        registry = new EventRegistry();
+        registry = new Registry<>(Event.class, EventMetadata.class, EventMetadata::type);
     }
 
     @Nested

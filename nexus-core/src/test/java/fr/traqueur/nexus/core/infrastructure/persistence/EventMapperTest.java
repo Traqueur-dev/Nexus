@@ -2,6 +2,7 @@ package fr.traqueur.nexus.core.infrastructure.persistence;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.traqueur.nexus.core.application.mapper.EventMapper;
+import fr.traqueur.nexus.core.application.registry.Registry;
 import fr.traqueur.nexus.core.domain.events.Context;
 import fr.traqueur.nexus.core.domain.events.Event;
 import fr.traqueur.nexus.core.domain.events.EventMetadata;
@@ -12,7 +13,6 @@ import fr.traqueur.nexus.core.domain.events.github.events.GitHubPushReceived;
 import fr.traqueur.nexus.core.domain.events.internal.InternalContext;
 import fr.traqueur.nexus.core.domain.events.internal.events.ScheduledEvent;
 import fr.traqueur.nexus.core.infrastructure.persistence.entities.EventEntity;
-import fr.traqueur.nexus.core.infrastructure.registry.Registry;
 import fr.traqueur.nexus.core.infrastructure.serialization.ContextMixin;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -21,7 +21,7 @@ import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 class EventMapperTest {
 

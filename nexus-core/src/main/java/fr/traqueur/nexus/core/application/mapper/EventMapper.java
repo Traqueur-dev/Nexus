@@ -1,11 +1,11 @@
 package fr.traqueur.nexus.core.application.mapper;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import fr.traqueur.nexus.core.application.registry.Registry;
 import fr.traqueur.nexus.core.domain.events.Context;
 import fr.traqueur.nexus.core.domain.events.Event;
 import fr.traqueur.nexus.core.domain.events.EventMetadata;
 import fr.traqueur.nexus.core.infrastructure.persistence.entities.EventEntity;
-import fr.traqueur.nexus.core.infrastructure.registry.Registry;
 import fr.traqueur.nexus.core.interfaces.rest.dto.EventRequestDto;
 import fr.traqueur.nexus.core.interfaces.rest.dto.EventResponseDto;
 import org.springframework.stereotype.Component;

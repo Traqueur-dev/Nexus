@@ -1,5 +1,6 @@
-package fr.traqueur.nexus.core.infrastructure.registry;
+package fr.traqueur.nexus.core.infrastructure.config;
 
+import fr.traqueur.nexus.core.application.registry.Registry;
 import fr.traqueur.nexus.core.domain.events.Event;
 import fr.traqueur.nexus.core.domain.events.EventMetadata;
 import fr.traqueur.nexus.core.domain.workflow.Condition;

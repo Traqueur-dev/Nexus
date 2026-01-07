@@ -6,8 +6,8 @@ import fr.traqueur.nexus.core.application.services.EventService;
 import fr.traqueur.nexus.core.domain.events.Event;
 import fr.traqueur.nexus.core.domain.events.discord.DiscordContext;
 import fr.traqueur.nexus.core.domain.events.discord.events.DiscordMessageReceived;
+import fr.traqueur.nexus.core.infrastructure.config.RegistriesConfig;
 import fr.traqueur.nexus.core.infrastructure.serialization.JacksonConfig;
-import fr.traqueur.nexus.core.interfaces.rest.dto.EventRequestDto;
 import fr.traqueur.nexus.core.interfaces.rest.dto.EventResponseDto;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -15,7 +15,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -23,14 +22,13 @@ import java.time.Instant;
 import java.util.Map;
 import java.util.Optional;
 
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(EventController.class)
-@Import(JacksonConfig.class)
+@Import({JacksonConfig.class, RegistriesConfig.class})
 class EventControllerTest {
 
     @Autowired
