@@ -3,8 +3,9 @@ package fr.traqueur.nexus.core.application.mapper;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.traqueur.nexus.core.domain.events.Context;
 import fr.traqueur.nexus.core.domain.events.Event;
+import fr.traqueur.nexus.core.domain.events.EventMetadata;
 import fr.traqueur.nexus.core.infrastructure.persistence.entities.EventEntity;
-import fr.traqueur.nexus.core.infrastructure.registry.EventRegistry;
+import fr.traqueur.nexus.core.infrastructure.registry.Registry;
 import fr.traqueur.nexus.core.interfaces.rest.dto.EventRequestDto;
 import fr.traqueur.nexus.core.interfaces.rest.dto.EventResponseDto;
 import org.springframework.stereotype.Component;
@@ -19,10 +20,10 @@ import java.util.Map;
 @Component
 public class EventMapper {
 
-    private final EventRegistry registry;
+    private final Registry<Event, EventMetadata> registry;
     private final ObjectMapper mapper;
 
-    public EventMapper(EventRegistry registry, ObjectMapper mapper) {
+    public EventMapper(Registry<Event, EventMetadata> registry, ObjectMapper mapper) {
         this.registry = registry;
         this.mapper = mapper;
     }

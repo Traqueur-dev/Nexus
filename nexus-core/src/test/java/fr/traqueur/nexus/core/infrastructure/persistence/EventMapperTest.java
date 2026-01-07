@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.traqueur.nexus.core.application.mapper.EventMapper;
 import fr.traqueur.nexus.core.domain.events.Context;
 import fr.traqueur.nexus.core.domain.events.Event;
+import fr.traqueur.nexus.core.domain.events.EventMetadata;
 import fr.traqueur.nexus.core.domain.events.discord.DiscordContext;
 import fr.traqueur.nexus.core.domain.events.discord.events.DiscordMessageReceived;
 import fr.traqueur.nexus.core.domain.events.github.GitHubContext;
@@ -11,7 +12,7 @@ import fr.traqueur.nexus.core.domain.events.github.events.GitHubPushReceived;
 import fr.traqueur.nexus.core.domain.events.internal.InternalContext;
 import fr.traqueur.nexus.core.domain.events.internal.events.ScheduledEvent;
 import fr.traqueur.nexus.core.infrastructure.persistence.entities.EventEntity;
-import fr.traqueur.nexus.core.infrastructure.registry.EventRegistry;
+import fr.traqueur.nexus.core.infrastructure.registry.Registry;
 import fr.traqueur.nexus.core.infrastructure.serialization.ContextMixin;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -28,7 +29,7 @@ class EventMapperTest {
 
     @BeforeEach
     void setUp() {
-        EventRegistry registry = new EventRegistry();
+        Registry<Event, EventMetadata> registry = new Registry<>(Event.class, EventMetadata.class, EventMetadata::type);
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.addMixIn(Context.class, ContextMixin.class);
         objectMapper.findAndRegisterModules(); // For Instant support

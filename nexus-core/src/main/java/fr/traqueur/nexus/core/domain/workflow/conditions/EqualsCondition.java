@@ -2,10 +2,12 @@ package fr.traqueur.nexus.core.domain.workflow.conditions;
 
 import fr.traqueur.nexus.core.domain.events.Event;
 import fr.traqueur.nexus.core.domain.workflow.Condition;
+import fr.traqueur.nexus.core.domain.workflow.ConditionMetadata;
 import fr.traqueur.nexus.core.domain.workflow.exceptions.ConditionEvaluationException;
 
 import java.util.Optional;
 
+@ConditionMetadata(type = "equals")
 public record EqualsCondition(String field, String value) implements Condition {
 
 
