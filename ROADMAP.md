@@ -8,7 +8,7 @@
 
 ---
 
-## Phase 0: Project Setup 🔄
+## Phase 0: Project Setup ✅
 
 ### Repository
 - [X] Gradle multi-module setup
@@ -17,35 +17,59 @@
 
 ### First Code
 - [X] Spring Boot 4 app with Virtual Threads
-- [X] `/health` endpoint
+- [ ] Health endpoint — the initial custom controller was removed; to be
+      replaced by Spring Boot Actuator, which also provides PostgreSQL and
+      RabbitMQ health indicators (needed for Phase 4 probes)
 - [X] First test
 
 ---
 
-## Phase 1: Nexus Core ⏳
+## Phase 1: Nexus Core 🔄
 
 ### Domain
-- [X] Event model (sealed interfaces, records)
-- [X] Workflow model (Trigger, Condition, Action)
+- [X] Event model (records, annotation-based type registry)
+- [X] Condition model (`equals`, `contains`, `composite`, `group`, `always`)
+- [X] Action model — descriptive only, no execution yet
+- [ ] Workflow behaviour (`matches()`, invariants) — currently an anemic record
+- [ ] Workflow execution engine
 
 ### Infrastructure
 - [X] PostgreSQL + Flyway
 - [X] RabbitMQ integration
-- [ ] Redis cache
+- [X] Polymorphic JSON serialization (events, conditions)
+- [ ] Redis cache — container provisioned, not wired
 
 ### API
-- [ ] REST endpoints (events, workflows)
+- [X] REST: read an event by id
+- [ ] REST: list and filter events (pagination)
+- [ ] REST endpoints for workflows
 - [ ] WebSocket real-time stream
+
+---
+
+## Phase 1.5: Architecture Refactor 🔄
+
+Prerequisite for Phase 2: the current design cannot host third-party adapters.
+See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+
+- [ ] Open the domain type hierarchies (remove `sealed`)
+- [ ] Introduce ports and adapters
+- [ ] Workflow engine behind an `ActionHandler` port
+- [ ] Build foundation: version catalog + convention plugins
+- [ ] Split into Gradle modules (domain / application / api / infrastructure /
+      plugin-loader / bootstrap)
+- [ ] ArchUnit rules to prevent regression
 
 ---
 
 ## Phase 2: Adapters ⏳
 
-- [ ] Adapter SDK
+- [ ] Adapter SDK (= `nexus-domain` + lifecycle interface)
+- [ ] Plugin loader (discovery, classloading, versioning)
 - [ ] Discord adapter
 - [ ] GitHub adapter
 - [ ] Minecraft adapter
-- [ ] Dynamic queue provisioning (adapters auto-register at runtime)
+
 ---
 
 ## Phase 3: Dashboard ⏳
@@ -69,13 +93,3 @@
 - [ ] Spring AI integration
 - [ ] Event replay
 - [ ] Monitoring (Prometheus/Grafana)
-
----
-
-## Phase 6: Plugin Architecture ⏳
-
-- [ ] Open Event/Context interfaces (non-sealed level 1)
-- [ ] Plugin JAR loading system
-- [ ] Hot-reload via endpoint
-- [ ] Plugin lifecycle management
-- [ ] Sealed interfaces at level 2 (per plugin)
