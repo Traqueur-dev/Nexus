@@ -9,12 +9,10 @@ import fr.traqueur.nexus.core.application.workflow.WorkflowEngine;
 import fr.traqueur.nexus.core.application.workflow.WorkflowRun;
 import fr.traqueur.nexus.core.domain.events.Event;
 import fr.traqueur.nexus.core.domain.events.EventType;
-import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 
-@Service
 public class EventService implements IngestEvent {
 
     private final EventRepository events;

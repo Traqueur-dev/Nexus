@@ -4,7 +4,6 @@ import fr.traqueur.nexus.core.application.ports.out.ActionHandler;
 import fr.traqueur.nexus.core.domain.events.Event;
 import fr.traqueur.nexus.core.domain.workflow.Action;
 import fr.traqueur.nexus.core.domain.workflow.exceptions.ActionExecutionException;
-import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.List;
@@ -17,7 +16,6 @@ import java.util.Map;
  * not a no-op: silently skipping it would let a workflow report success while
  * doing nothing.
  */
-@Component
 public class ActionDispatcher {
 
     private final Map<Class<? extends Action>, ActionHandler<? extends Action>> handlers = new HashMap<>();

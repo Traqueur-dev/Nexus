@@ -7,7 +7,6 @@ import fr.traqueur.nexus.core.domain.workflow.Action;
 import fr.traqueur.nexus.core.domain.workflow.Workflow;
 import fr.traqueur.nexus.core.domain.workflow.exceptions.ActionExecutionException;
 import fr.traqueur.nexus.core.domain.workflow.exceptions.ConditionEvaluationException;
-import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,7 +25,6 @@ import java.util.List;
  * intents, not a transaction. Everything that went wrong comes back in the
  * {@link WorkflowRun} list so the caller can report it.
  */
-@Component
 public class WorkflowEngine {
 
     private final WorkflowRepository workflows;

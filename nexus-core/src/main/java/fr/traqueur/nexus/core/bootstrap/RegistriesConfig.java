@@ -1,4 +1,4 @@
-package fr.traqueur.nexus.core.infrastructure.config;
+package fr.traqueur.nexus.core.bootstrap;
 
 import fr.traqueur.nexus.core.application.registry.Registry;
 import fr.traqueur.nexus.core.domain.events.Context;

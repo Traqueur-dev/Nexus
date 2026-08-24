@@ -216,6 +216,32 @@ ArchUnit enforces package rules within a module.
 dedicated `URLClassLoader` — the approach used by Jenkins and Bukkit — gives
 more control over versioning and unloading than JPMS would.
 
+### ADR-005 — The application layer carries no framework annotation
+
+**Status:** accepted.
+
+`EventService`, `EventFactory`, `ActionDispatcher` and `WorkflowEngine` were
+annotated `@Service` / `@Component`. Nothing forced that: they are plain classes
+with constructor injection.
+
+**Decision:** remove the annotations and declare these beans from
+`bootstrap/ApplicationConfig`.
+
+**Consequences:** the application layer becomes ordinary Java, drivable by
+something other than Spring — a plugin embedding the workflow engine, a CLI, a
+different framework — without touching it. The cost is one configuration class,
+and the discipline of declaring a bean when adding a service. In exchange the
+application's dependency graph is readable in one file, which component scanning
+hides.
+
+`RegistriesConfig` moved to `bootstrap` for the same reason: deciding which
+types are registered is assembly, not infrastructure.
+
+Handlers are collected through an `ObjectProvider`, not an injected `List`.
+Spring fails to start when a `List<T>` has no candidate, and having no action
+handler is legitimate — `SendEmailActionHandler` exists only when SMTP is
+configured.
+
 ### ADR-004 — Ports live in `application`
 
 **Status:** accepted.

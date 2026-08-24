@@ -6,7 +6,7 @@ import fr.traqueur.nexus.core.application.services.EventService;
 import fr.traqueur.nexus.core.domain.events.Event;
 import fr.traqueur.nexus.core.domain.events.discord.DiscordContext;
 import fr.traqueur.nexus.core.domain.events.discord.events.DiscordMessageReceived;
-import fr.traqueur.nexus.core.infrastructure.config.RegistriesConfig;
+import fr.traqueur.nexus.core.bootstrap.RegistriesConfig;
 import fr.traqueur.nexus.core.infrastructure.serialization.JacksonConfig;
 import fr.traqueur.nexus.core.interfaces.rest.dto.EventResponseDto;
 import org.junit.jupiter.api.DisplayName;

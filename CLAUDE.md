@@ -88,19 +88,24 @@ not be merged.
 2. **`nexus-domain` has zero third-party dependencies.** No Spring, no Jakarta,
    no Jackson. It ships to third-party plugin authors as-is; anything added
    there is imposed on every plugin.
-3. **The domain decides, adapters act.** Domain code is pure: same inputs, same
+3. **`nexus-application` carries no framework annotation.** No `@Service`, no
+   `@Component`. Application beans are declared from `nexus-bootstrap`, so the
+   layer can be driven by something other than Spring — a plugin embedding the
+   workflow engine, a CLI, another framework. Spring belongs to the adapters and
+   to bootstrap.
+4. **The domain decides, adapters act.** Domain code is pure: same inputs, same
    outputs, no I/O. An `Action` is a *description* of an intent, never its
    execution.
-4. **Crossing a boundary goes through a port.** `application` defines interfaces
+5. **Crossing a boundary goes through a port.** `application` defines interfaces
    (`ports/in`, `ports/out`); `infrastructure` implements them. Application code
    must never import a JPA entity, a Spring Data repository, or a REST DTO.
-5. **Adapters do not share types.** The RabbitMQ consumer and the REST
+6. **Adapters do not share types.** The RabbitMQ consumer and the REST
    controller must not depend on each other's DTOs. Shared ingestion contracts
    belong to `application` as commands.
-6. **Domain types stay open.** Event, Context, Action and Condition hierarchies
+7. **Domain types stay open.** Event, Context, Action and Condition hierarchies
    must remain extensible by external plugins — see ADR-001 in
    [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
-7. **Internal adapters use the public SDK.** The bundled Discord and GitHub
+8. **Internal adapters use the public SDK.** The bundled Discord and GitHub
    adapters get no privileged access a third-party plugin lacks.
 
 ---

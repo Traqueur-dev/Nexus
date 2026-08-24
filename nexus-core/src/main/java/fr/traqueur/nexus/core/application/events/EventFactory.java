@@ -4,7 +4,6 @@ import fr.traqueur.nexus.core.application.registry.Registry;
 import fr.traqueur.nexus.core.domain.events.Context;
 import fr.traqueur.nexus.core.domain.events.Event;
 import fr.traqueur.nexus.core.domain.events.EventMetadata;
-import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.RecordComponent;
@@ -27,7 +26,6 @@ import java.util.Map;
  * being checked at compile time. Renaming a record component is a silent
  * breaking change.
  */
-@Component
 public class EventFactory {
 
     private static final String ID = "id";
