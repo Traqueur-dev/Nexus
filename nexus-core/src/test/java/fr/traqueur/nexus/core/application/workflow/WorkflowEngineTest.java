@@ -6,7 +6,9 @@ import fr.traqueur.nexus.core.domain.events.Event;
 import fr.traqueur.nexus.core.domain.events.EventType;
 import fr.traqueur.nexus.core.domain.events.discord.DiscordContext;
 import fr.traqueur.nexus.core.domain.events.discord.events.DiscordMessageReceived;
+import fr.traqueur.nexus.core.TestFixtures;
 import fr.traqueur.nexus.core.domain.workflow.Action;
+import fr.traqueur.nexus.core.domain.workflow.ActionMetadata;
 import fr.traqueur.nexus.core.domain.workflow.Workflow;
 import fr.traqueur.nexus.core.domain.workflow.conditions.AlwaysCondition;
 import fr.traqueur.nexus.core.domain.workflow.conditions.EqualsCondition;
@@ -26,9 +28,11 @@ class WorkflowEngineTest {
 
     private static final EventType DISCORD_MESSAGE = EventType.of("discord.message_received");
 
+    @ActionMetadata(type = "test.log")
     record LogAction(String tag) implements Action {
     }
 
+    @ActionMetadata(type = "test.failing")
     record FailingAction(String tag) implements Action {
     }
 
@@ -64,6 +68,13 @@ class WorkflowEngineTest {
                 Instant.parse("2026-01-04T10:00:00Z"), content, 1L);
     }
 
+    @SafeVarargs
+    private static ActionDispatcher dispatcher(ActionHandler<? extends Action>... handlers) {
+        return new ActionDispatcher(
+                TestFixtures.actions().register(LogAction.class).register(FailingAction.class),
+                List.of(handlers));
+    }
+
     private static WorkflowRepository containing(Workflow... workflows) {
         List<Workflow> all = List.of(workflows);
         return type -> all.stream().filter(workflow -> workflow.triggersOn(type)).toList();
@@ -79,7 +90,7 @@ class WorkflowEngineTest {
             LogHandler handler = new LogHandler();
             Workflow workflow = new Workflow("wf-1", List.of(DISCORD_MESSAGE),
                     new AlwaysCondition(), List.of(new LogAction("a"), new LogAction("b")));
-            WorkflowEngine engine = new WorkflowEngine(containing(workflow), new ActionDispatcher(List.of(handler)));
+            WorkflowEngine engine = new WorkflowEngine(containing(workflow), dispatcher(handler));
 
             List<WorkflowRun> runs = engine.run(DISCORD_MESSAGE, event("hello"));
 
@@ -95,7 +106,7 @@ class WorkflowEngineTest {
             LogHandler handler = new LogHandler();
             Workflow workflow = new Workflow("wf-1", List.of(DISCORD_MESSAGE),
                     new EqualsCondition("content", "expected"), List.of(new LogAction("a")));
-            WorkflowEngine engine = new WorkflowEngine(containing(workflow), new ActionDispatcher(List.of(handler)));
+            WorkflowEngine engine = new WorkflowEngine(containing(workflow), dispatcher(handler));
 
             List<WorkflowRun> runs = engine.run(DISCORD_MESSAGE, event("something else"));
 
@@ -106,7 +117,7 @@ class WorkflowEngineTest {
         @Test
         @DisplayName("should report nothing when no workflow reacts to the type")
         void shouldReportNothingWhenNoWorkflow() {
-            WorkflowEngine engine = new WorkflowEngine(containing(), new ActionDispatcher(List.of()));
+            WorkflowEngine engine = new WorkflowEngine(containing(), dispatcher());
 
             assertThat(engine.run(DISCORD_MESSAGE, event("hello"))).isEmpty();
         }
@@ -123,7 +134,7 @@ class WorkflowEngineTest {
             Workflow workflow = new Workflow("wf-1", List.of(DISCORD_MESSAGE), new AlwaysCondition(),
                     List.of(new LogAction("before"), new FailingAction("x"), new LogAction("after")));
             WorkflowEngine engine = new WorkflowEngine(containing(workflow),
-                    new ActionDispatcher(List.of(logHandler, new FailingHandler())));
+                    dispatcher(logHandler, new FailingHandler()));
 
             List<WorkflowRun> runs = engine.run(DISCORD_MESSAGE, event("hello"));
 
@@ -143,7 +154,7 @@ class WorkflowEngineTest {
             Workflow healthy = new Workflow("wf-ok", List.of(DISCORD_MESSAGE),
                     new AlwaysCondition(), List.of(new LogAction("ran")));
             WorkflowEngine engine = new WorkflowEngine(containing(broken, healthy),
-                    new ActionDispatcher(List.of(handler)));
+                    dispatcher(handler));
 
             List<WorkflowRun> runs = engine.run(DISCORD_MESSAGE, event("hello"));
 
@@ -160,7 +171,7 @@ class WorkflowEngineTest {
         void shouldRecordMissingHandler() {
             Workflow workflow = new Workflow("wf-1", List.of(DISCORD_MESSAGE),
                     new AlwaysCondition(), List.of(new LogAction("a")));
-            WorkflowEngine engine = new WorkflowEngine(containing(workflow), new ActionDispatcher(List.of()));
+            WorkflowEngine engine = new WorkflowEngine(containing(workflow), dispatcher());
 
             List<WorkflowRun> runs = engine.run(DISCORD_MESSAGE, event("hello"));
 

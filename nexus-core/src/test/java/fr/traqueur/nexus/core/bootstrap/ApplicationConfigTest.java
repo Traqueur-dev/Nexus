@@ -38,7 +38,8 @@ class ApplicationConfigTest {
 
     private final ApplicationContextRunner runner = new ApplicationContextRunner()
             .withUserConfiguration(ApplicationConfig.class)
-            .withBean(Registry.class, TestFixtures::events)
+            .withBean("eventRegistry", Registry.class, TestFixtures::events)
+            .withBean("actionRegistry", Registry.class, TestFixtures::actions)
             .withBean(EventRepository.class, StubEventRepository::new)
             .withBean(WorkflowRepository.class, () -> type -> List.of());
 

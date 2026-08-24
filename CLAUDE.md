@@ -124,10 +124,16 @@ not be merged.
 - **Adapter** — a source of events. Either bundled in this repo or supplied as
   an external plugin. Both use the same SDK.
 
-Types are registered by annotation (`@EventMetadata`, `@ConditionMetadata`) and
-resolved at runtime through `Registry`, which maps a stable string type
-(`github.push_received`) to a class. That string is a persisted contract:
-**renaming it breaks stored rows and in-flight messages.**
+Types are registered by annotation (`@EventMetadata`, `@ContextMetadata`,
+`@ConditionMetadata`, `@ActionMetadata`) and resolved at runtime through
+`Registry`, which maps a stable string type (`github.push_received`) to a class.
+That string is a persisted contract: **renaming it breaks stored rows and
+in-flight messages.**
+
+Every open hierarchy has all four pieces: an annotation, a `Registry` bean in
+`bootstrap/RegistriesConfig`, a `Core*` list declaring the built-in types, and
+identifiers used wherever the type crosses a boundary. A hierarchy missing any
+of them is incomplete — see ADR-006.
 
 ---
 

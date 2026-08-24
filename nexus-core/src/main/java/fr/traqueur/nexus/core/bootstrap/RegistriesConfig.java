@@ -7,8 +7,11 @@ import fr.traqueur.nexus.core.domain.events.CoreContexts;
 import fr.traqueur.nexus.core.domain.events.CoreEvents;
 import fr.traqueur.nexus.core.domain.events.Event;
 import fr.traqueur.nexus.core.domain.events.EventMetadata;
+import fr.traqueur.nexus.core.domain.workflow.Action;
+import fr.traqueur.nexus.core.domain.workflow.ActionMetadata;
 import fr.traqueur.nexus.core.domain.workflow.Condition;
 import fr.traqueur.nexus.core.domain.workflow.ConditionMetadata;
+import fr.traqueur.nexus.core.domain.workflow.CoreActions;
 import fr.traqueur.nexus.core.domain.workflow.CoreConditions;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -32,6 +35,12 @@ public class RegistriesConfig {
     public Registry<Condition, ConditionMetadata> conditionRegistry() {
         return new Registry<>(Condition.class, ConditionMetadata.class, ConditionMetadata::type)
                 .registerAll(CoreConditions.types());
+    }
+
+    @Bean
+    public Registry<Action, ActionMetadata> actionRegistry() {
+        return new Registry<>(Action.class, ActionMetadata.class, ActionMetadata::type)
+                .registerAll(CoreActions.types());
     }
 
 }

@@ -7,6 +7,8 @@ import fr.traqueur.nexus.core.domain.events.Context;
 import fr.traqueur.nexus.core.domain.events.ContextMetadata;
 import fr.traqueur.nexus.core.domain.events.Event;
 import fr.traqueur.nexus.core.domain.events.EventMetadata;
+import fr.traqueur.nexus.core.domain.workflow.Action;
+import fr.traqueur.nexus.core.domain.workflow.ActionMetadata;
 import fr.traqueur.nexus.core.domain.workflow.Condition;
 import fr.traqueur.nexus.core.domain.workflow.ConditionMetadata;
 import fr.traqueur.nexus.core.infrastructure.serialization.JacksonConfig;
@@ -44,6 +46,10 @@ public final class TestFixtures {
 
     public static Registry<Condition, ConditionMetadata> conditions() {
         return REGISTRIES.conditionRegistry();
+    }
+
+    public static Registry<Action, ActionMetadata> actions() {
+        return REGISTRIES.actionRegistry();
     }
 
     /** The production mapper, configured exactly as the application configures it. */

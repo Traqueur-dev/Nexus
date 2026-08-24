@@ -11,6 +11,7 @@ import fr.traqueur.nexus.core.application.workflow.WorkflowEngine;
 import fr.traqueur.nexus.core.domain.events.Event;
 import fr.traqueur.nexus.core.domain.events.EventMetadata;
 import fr.traqueur.nexus.core.domain.workflow.Action;
+import fr.traqueur.nexus.core.domain.workflow.ActionMetadata;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -43,8 +44,9 @@ public class ApplicationConfig {
      * dispatch.
      */
     @Bean
-    public ActionDispatcher actionDispatcher(ObjectProvider<ActionHandler<? extends Action>> handlers) {
-        return new ActionDispatcher(handlers.stream().toList());
+    public ActionDispatcher actionDispatcher(Registry<Action, ActionMetadata> actionRegistry,
+                                             ObjectProvider<ActionHandler<? extends Action>> handlers) {
+        return new ActionDispatcher(actionRegistry, handlers.stream().toList());
     }
 
     @Bean

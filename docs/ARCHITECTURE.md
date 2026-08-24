@@ -150,6 +150,28 @@ That is what "zero dependencies" is protecting.
 
 ## 7. Decisions
 
+### ADR-006 — Every open hierarchy carries a metadata annotation and a registry
+
+**Status:** accepted.
+
+`Event`, `Context` and `Condition` each had a metadata annotation, a `Registry`
+and a declared list of core types. `Action` had none, despite being equally open
+and equally persisted inside a `Workflow`.
+
+Left alone, the adapter persisting workflows would have had to invent an
+identity: either a hardcoded `@JsonSubTypes` — the closed-at-the-boundary bug
+ADR-001 exists to prevent — or fully-qualified class names, which turns a package
+move into a broken migration.
+
+**Decision:** `@ActionMetadata` + `Registry<Action, ActionMetadata>` +
+`CoreActions`, matching the other three. `ActionDispatcher` keys handlers on the
+registered identifier rather than the Java class.
+
+**Consequences:** action identity has one source of truth, shared by dispatch,
+reporting and (later) storage. The rule generalises: **an open hierarchy without
+a metadata annotation and a registry is incomplete** — whatever crosses a
+boundary needs a stable name that is not its class name.
+
 ### ADR-001 — Domain type hierarchies are open, not `sealed`
 
 **Status:** accepted.

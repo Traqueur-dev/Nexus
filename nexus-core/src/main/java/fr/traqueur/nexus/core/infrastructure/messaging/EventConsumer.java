@@ -50,7 +50,7 @@ public class EventConsumer {
             }
             run.failures().forEach(outcome -> logger.warn(
                     "[WORKFLOW] {} action {} failed: {}",
-                    run.workflowId(), outcome.action().getClass().getSimpleName(), outcome.failure()));
+                    run.workflowId(), outcome.actionType(), outcome.failure()));
         }
     }
 

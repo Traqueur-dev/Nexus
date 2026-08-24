@@ -58,15 +58,16 @@ public class WorkflowEngine {
     private List<ActionOutcome> execute(Workflow workflow, Event event) {
         List<ActionOutcome> outcomes = new ArrayList<>();
         for (Action action : workflow.actions()) {
+            String type = dispatcher.describe(action);
             try {
                 dispatcher.dispatch(action, event);
-                outcomes.add(ActionOutcome.succeeded(action));
+                outcomes.add(ActionOutcome.succeeded(type, action));
             } catch (ActionExecutionException e) {
-                outcomes.add(ActionOutcome.failed(action, e.getMessage()));
+                outcomes.add(ActionOutcome.failed(type, action, e.getMessage()));
             } catch (RuntimeException e) {
                 // A handler that throws unexpectedly is a bug in that handler, not
                 // a reason to abandon the rest of the workflow.
-                outcomes.add(ActionOutcome.failed(action, e.toString()));
+                outcomes.add(ActionOutcome.failed(type, action, e.toString()));
             }
         }
         return outcomes;

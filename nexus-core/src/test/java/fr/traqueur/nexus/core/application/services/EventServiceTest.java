@@ -76,7 +76,7 @@ class EventServiceTest {
         repository = new InMemoryEventRepository();
         WorkflowRepository noWorkflows = (EventType type) -> List.of();
         service = new EventService(repository, new EventFactory(TestFixtures.events()),
-                new WorkflowEngine(noWorkflows, new ActionDispatcher(List.of())));
+                new WorkflowEngine(noWorkflows, new ActionDispatcher(TestFixtures.actions(), List.of())));
     }
 
     private static DiscordMessageReceived discordEvent(String instance, Instant at, String content) {
