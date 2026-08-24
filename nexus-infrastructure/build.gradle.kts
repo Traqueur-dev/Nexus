@@ -2,11 +2,12 @@ plugins {
     id("nexus.spring-conventions")
 }
 
-description = "Driven adapters: JPA, RabbitMQ, mail, serialization."
+description = "Adapters: REST, JPA, RabbitMQ, mail, serialization."
 
 dependencies {
     implementation(project(":nexus-application"))
 
+    implementation(libs.spring.boot.starter.web)
     implementation(libs.spring.boot.starter.data.jpa)
     implementation(libs.spring.boot.starter.amqp)
     implementation(libs.spring.boot.starter.mail)

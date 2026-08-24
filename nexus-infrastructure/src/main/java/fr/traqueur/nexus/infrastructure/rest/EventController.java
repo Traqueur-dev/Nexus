@@ -1,10 +1,10 @@
-package fr.traqueur.nexus.api.rest;
+package fr.traqueur.nexus.infrastructure.rest;
 
 import fr.traqueur.nexus.application.services.EventService;
 import fr.traqueur.nexus.domain.events.Event;
-import fr.traqueur.nexus.api.rest.dto.EventResponseDto;
-import fr.traqueur.nexus.api.rest.exceptions.EventNotFoundException;
-import fr.traqueur.nexus.api.rest.exceptions.InvalidEventIdException;
+import fr.traqueur.nexus.infrastructure.rest.dto.EventResponseDto;
+import fr.traqueur.nexus.infrastructure.rest.exceptions.EventNotFoundException;
+import fr.traqueur.nexus.infrastructure.rest.exceptions.InvalidEventIdException;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;

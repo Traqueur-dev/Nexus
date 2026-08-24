@@ -1,4 +1,4 @@
-package fr.traqueur.nexus.api.rest.dto;
+package fr.traqueur.nexus.infrastructure.rest.dto;
 
 import java.time.Instant;
 import java.util.Map;

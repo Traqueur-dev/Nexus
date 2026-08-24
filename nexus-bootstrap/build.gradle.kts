@@ -10,12 +10,10 @@ description = "Assembles the application and produces the runnable jar."
 dependencies {
     /*
      * The only module that sees every other one. Something has to know each
-     * implementation in order to wire it to its port; keeping that here is what
-     * stops infrastructure and api from having to see each other, which would
-     * close the dependency graph into a cycle.
+     * implementation in order to wire it to its port, and which types are
+     * registered — assembly decisions that belong to no adapter.
      */
     implementation(project(":nexus-application"))
-    implementation(project(":nexus-api"))
     implementation(project(":nexus-infrastructure"))
     implementation(project(":nexus-plugin-loader"))
 

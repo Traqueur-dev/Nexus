@@ -1,4 +1,4 @@
-package fr.traqueur.nexus.api.rest;
+package fr.traqueur.nexus.infrastructure.rest;
 
 import tools.jackson.databind.ObjectMapper;
 
@@ -8,7 +8,7 @@ import fr.traqueur.nexus.domain.events.discord.DiscordContext;
 import fr.traqueur.nexus.domain.events.discord.events.DiscordMessageReceived;
 import fr.traqueur.nexus.bootstrap.RegistriesConfig;
 import fr.traqueur.nexus.infrastructure.serialization.JacksonConfig;
-import fr.traqueur.nexus.api.rest.dto.EventResponseDto;
+import fr.traqueur.nexus.infrastructure.rest.dto.EventResponseDto;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;

@@ -1,9 +1,9 @@
-package fr.traqueur.nexus.api.rest;
+package fr.traqueur.nexus.infrastructure.rest;
 
 import tools.jackson.databind.ObjectMapper;
 import fr.traqueur.nexus.application.events.EventFactory;
 import fr.traqueur.nexus.domain.events.Event;
-import fr.traqueur.nexus.api.rest.dto.EventResponseDto;
+import fr.traqueur.nexus.infrastructure.rest.dto.EventResponseDto;
 import org.springframework.stereotype.Component;
 
 /**

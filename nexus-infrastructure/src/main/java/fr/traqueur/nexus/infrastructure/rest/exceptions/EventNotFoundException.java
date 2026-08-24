@@ -1,4 +1,4 @@
-package fr.traqueur.nexus.api.rest.exceptions;
+package fr.traqueur.nexus.infrastructure.rest.exceptions;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
