@@ -1,6 +1,6 @@
 package fr.traqueur.nexus.infrastructure.rest;
 
-import fr.traqueur.nexus.application.services.EventService;
+import fr.traqueur.nexus.application.ports.in.QueryEvents;
 import fr.traqueur.nexus.domain.events.Event;
 import fr.traqueur.nexus.infrastructure.rest.dto.EventResponseDto;
 import fr.traqueur.nexus.infrastructure.rest.exceptions.EventNotFoundException;
@@ -14,18 +14,23 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/events")
 public class EventController {
 
-    private final EventService eventService;
+    private final QueryEvents events;
     private final EventDtoMapper eventDtoMapper;
 
-    public EventController(EventService eventService, EventDtoMapper eventDtoMapper) {
-        this.eventService = eventService;
+    /**
+     * Depends on the inbound port, not on {@code EventService}: the adapter states
+     * what it needs from the application — reading events — and nothing more.
+     * Injecting the service handed the HTTP layer the ingestion path too.
+     */
+    public EventController(QueryEvents events, EventDtoMapper eventDtoMapper) {
+        this.events = events;
         this.eventDtoMapper = eventDtoMapper;
     }
 
     @GetMapping("/{id}")
     public EventResponseDto getEvent(@PathVariable String id) {
         Event.Id eventId = parseId(id);
-        return eventService.findById(eventId)
+        return events.findById(eventId)
                 .map(eventDtoMapper::toDto)
                 .orElseThrow(() -> new EventNotFoundException("Event not found with id: " + id));
     }

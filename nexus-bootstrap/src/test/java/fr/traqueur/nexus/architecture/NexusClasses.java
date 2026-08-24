@@ -20,6 +20,7 @@ final class NexusClasses {
 
     static final String DOMAIN = "fr.traqueur.nexus.domain..";
     static final String APPLICATION = "fr.traqueur.nexus.application..";
+    static final String APPLICATION_SERVICES = "fr.traqueur.nexus.application.services..";
     static final String INFRASTRUCTURE = "fr.traqueur.nexus.infrastructure..";
     static final String BOOTSTRAP = "fr.traqueur.nexus.bootstrap..";
 

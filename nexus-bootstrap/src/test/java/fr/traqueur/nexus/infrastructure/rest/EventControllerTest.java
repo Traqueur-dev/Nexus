@@ -2,7 +2,7 @@ package fr.traqueur.nexus.infrastructure.rest;
 
 import tools.jackson.databind.ObjectMapper;
 
-import fr.traqueur.nexus.application.services.EventService;
+import fr.traqueur.nexus.application.ports.in.QueryEvents;
 import fr.traqueur.nexus.domain.events.Event;
 import fr.traqueur.nexus.domain.events.discord.DiscordContext;
 import fr.traqueur.nexus.domain.events.discord.events.DiscordMessageReceived;
@@ -35,7 +35,7 @@ class EventControllerTest {
     private MockMvc mockMvc;
 
     @MockitoBean
-    private EventService eventService;
+    private QueryEvents events;
 
     @MockitoBean
     private EventDtoMapper eventDtoMapper;
@@ -70,7 +70,7 @@ class EventControllerTest {
                     Map.of("content", "Hello!", "authorId", 123456789)
             );
 
-            when(eventService.findById(id)).thenReturn(Optional.of(event));
+            when(events.findById(id)).thenReturn(Optional.of(event));
             when(eventDtoMapper.toDto(event)).thenReturn(responseDto);
 
             // When & Then
@@ -91,7 +91,7 @@ class EventControllerTest {
         void shouldReturn404WhenNotFound() throws Exception {
             // Given
             String eventId = "unknown-abc123";
-            when(eventService.findById(new Event.Id("unknown", "abc123"))).thenReturn(Optional.empty());
+            when(events.findById(new Event.Id("unknown", "abc123"))).thenReturn(Optional.empty());
 
             // When & Then
             mockMvc.perform(get("/api/v1/events/{id}", eventId))

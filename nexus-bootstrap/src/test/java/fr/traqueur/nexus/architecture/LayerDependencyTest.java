@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 import static fr.traqueur.nexus.architecture.NexusClasses.APPLICATION;
+import static fr.traqueur.nexus.architecture.NexusClasses.APPLICATION_SERVICES;
 import static fr.traqueur.nexus.architecture.NexusClasses.BOOTSTRAP;
 import static fr.traqueur.nexus.architecture.NexusClasses.DOMAIN;
 import static fr.traqueur.nexus.architecture.NexusClasses.INFRASTRUCTURE;
@@ -62,6 +63,21 @@ class LayerDependencyTest {
                         + "Spring — a plugin embedding the workflow engine, a CLI, another "
                         + "framework (ADR-005). It is also how the layer stays testable in "
                         + "milliseconds: no context to start, no container to wait for")
+                .check(NexusClasses.get());
+    }
+
+    @Test
+    @DisplayName("adapters should reach the application through its ports")
+    void adaptersShouldGoThroughPorts() {
+        noClasses().that().resideInAPackage(INFRASTRUCTURE)
+                .should().dependOnClassesThat().resideInAPackage(APPLICATION_SERVICES)
+                .as("adapters depend on ports, not on application services")
+                .because("a port states what the adapter needs and nothing more, while the "
+                        + "service is everything the application can do: the REST controller "
+                        + "reading events had the ingestion path in reach for no reason. It "
+                        + "also keeps the service free to change — splitting it, or renaming "
+                        + "a method no adapter should have been calling — without touching "
+                        + "an adapter (CLAUDE.md rule 5)")
                 .check(NexusClasses.get());
     }
 

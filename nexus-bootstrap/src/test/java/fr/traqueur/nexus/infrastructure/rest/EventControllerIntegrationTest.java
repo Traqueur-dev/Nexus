@@ -1,7 +1,7 @@
 package fr.traqueur.nexus.infrastructure.rest;
 
 import tools.jackson.databind.ObjectMapper;
-import fr.traqueur.nexus.application.services.EventService;
+import fr.traqueur.nexus.application.ports.in.QueryEvents;
 import fr.traqueur.nexus.domain.events.Event;
 import fr.traqueur.nexus.infrastructure.messaging.dto.EventMessage;
 import org.junit.jupiter.api.DisplayName;
@@ -50,7 +50,7 @@ class EventControllerIntegrationTest {
     private RabbitTemplate rabbitTemplate;
 
     @Autowired
-    private EventService eventService;
+    private QueryEvents events;
 
     @Nested
     @DisplayName("GET /api/v1/events/{id}")
@@ -73,10 +73,10 @@ class EventControllerIntegrationTest {
 
             // Wait for async processing
             await().atMost(5, TimeUnit.SECONDS).until(() ->
-                    eventService.findLatestBySource("discord").isPresent()
+                    events.findLatestBySource("discord").isPresent()
             );
 
-            Event event = eventService.findLatestBySource("discord").get();
+            Event event = events.findLatestBySource("discord").get();
 
             // When & Then - Retrieve via REST
             mockMvc.perform(get("/api/v1/events/{id}", event.id().toString()))

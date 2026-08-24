@@ -4,6 +4,7 @@ import fr.traqueur.nexus.application.events.EventFactory;
 import fr.traqueur.nexus.application.ports.in.IngestEvent;
 import fr.traqueur.nexus.application.ports.in.IngestEventCommand;
 import fr.traqueur.nexus.application.ports.in.IngestionResult;
+import fr.traqueur.nexus.application.ports.in.QueryEvents;
 import fr.traqueur.nexus.application.ports.out.EventRepository;
 import fr.traqueur.nexus.application.workflow.WorkflowEngine;
 import fr.traqueur.nexus.application.workflow.WorkflowRun;
@@ -13,7 +14,7 @@ import fr.traqueur.nexus.domain.events.EventType;
 import java.util.List;
 import java.util.Optional;
 
-public class EventService implements IngestEvent {
+public class EventService implements IngestEvent, QueryEvents {
 
     private final EventRepository events;
     private final EventFactory factory;
@@ -45,10 +46,12 @@ public class EventService implements IngestEvent {
         return new IngestionResult(event, runs);
     }
 
+    @Override
     public Optional<Event> findById(Event.Id id) {
         return events.findById(id);
     }
 
+    @Override
     public Optional<Event> findLatestBySource(String source) {
         return events.findLatestBySource(source);
     }
