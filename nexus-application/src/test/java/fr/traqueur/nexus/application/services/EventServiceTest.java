@@ -79,15 +79,17 @@ class EventServiceTest {
                 new WorkflowEngine(noWorkflows, new ActionDispatcher(Registries.actions(), List.of())));
     }
 
-    private static DiscordMessageReceived discordEvent(String instance, Instant at, String content) {
+    // Generated rather than spelled out: these tests care that events are distinct,
+    // never what their ids are.
+    private static DiscordMessageReceived discordEvent(Instant at, String content) {
         return new DiscordMessageReceived(
-                new Event.Id("discord", instance), new DiscordContext(), at, content, 42L);
+                Event.Id.generate("discord"), new DiscordContext(), at, content, 42L);
     }
 
     @Test
     @DisplayName("should store an event and read it back by id")
     void shouldStoreAndReadBack() {
-        DiscordMessageReceived event = discordEvent("aaaaaa", Instant.parse("2026-01-04T10:00:00Z"), "hello");
+        DiscordMessageReceived event = discordEvent(Instant.parse("2026-01-04T10:00:00Z"), "hello");
 
         repository.save(event);
 
@@ -98,14 +100,14 @@ class EventServiceTest {
     @Test
     @DisplayName("should return empty for an unknown id")
     void shouldReturnEmptyForUnknownId() {
-        assertThat(service.findById(new Event.Id("discord", "zzzzzz"))).isEmpty();
+        assertThat(service.findById(Event.Id.generate("discord"))).isEmpty();
     }
 
     @Test
     @DisplayName("should return the most recent event for a source")
     void shouldReturnMostRecentForSource() {
-        DiscordMessageReceived older = discordEvent("aaaaaa", Instant.parse("2026-01-04T10:00:00Z"), "older");
-        DiscordMessageReceived newer = discordEvent("bbbbbb", Instant.parse("2026-01-04T12:00:00Z"), "newer");
+        DiscordMessageReceived older = discordEvent(Instant.parse("2026-01-04T10:00:00Z"), "older");
+        DiscordMessageReceived newer = discordEvent(Instant.parse("2026-01-04T12:00:00Z"), "newer");
 
         repository.save(older);
         repository.save(newer);
@@ -116,9 +118,9 @@ class EventServiceTest {
     @Test
     @DisplayName("should not mix sources when looking up the latest event")
     void shouldNotMixSources() {
-        DiscordMessageReceived discord = discordEvent("aaaaaa", Instant.parse("2026-01-04T10:00:00Z"), "discord");
+        DiscordMessageReceived discord = discordEvent(Instant.parse("2026-01-04T10:00:00Z"), "discord");
         GitHubPushReceived github = new GitHubPushReceived(
-                new Event.Id("github", "cccccc"), new GitHubContext(),
+                Event.Id.generate("github"), new GitHubContext(),
                 Instant.parse("2026-01-04T18:00:00Z"), "someone", "nexus", "develop");
 
         repository.save(discord);
@@ -131,7 +133,7 @@ class EventServiceTest {
     @Test
     @DisplayName("should return empty for a source with no event")
     void shouldReturnEmptyForUnknownSource() {
-        repository.save(discordEvent("aaaaaa", Instant.parse("2026-01-04T10:00:00Z"), "hello"));
+        repository.save(discordEvent(Instant.parse("2026-01-04T10:00:00Z"), "hello"));
 
         assertThat(service.findLatestBySource("minecraft")).isEmpty();
     }

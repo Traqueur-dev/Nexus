@@ -36,7 +36,7 @@ class EventEntityMapperTest {
         @Test
         @DisplayName("should convert DiscordMessageReceived to entity")
         void shouldConvertDiscordEvent() {
-            Event.Id id = new Event.Id("disc", "abc123");
+            Event.Id id = Event.Id.generate("disc");
             DiscordContext context = new DiscordContext();
             Instant timestamp = Instant.parse("2026-01-03T10:00:00Z");
             DiscordMessageReceived event = new DiscordMessageReceived(
@@ -45,7 +45,7 @@ class EventEntityMapperTest {
 
             EventEntity entity = mapper.toEntity(event);
 
-            assertThat(entity.getId()).isEqualTo("disc-abc123");
+            assertThat(entity.getId()).isEqualTo(id.toString());
             assertThat(entity.getSource()).isEqualTo("discord");
             assertThat(entity.getType()).isEqualTo("discord.message_received");
             assertThat(entity.getTimestamp()).isEqualTo(timestamp);
@@ -57,7 +57,7 @@ class EventEntityMapperTest {
         @Test
         @DisplayName("should convert GitHubPushReceived to entity")
         void shouldConvertGitHubEvent() {
-            Event.Id id = new Event.Id("gh", "xyz789");
+            Event.Id id = Event.Id.generate("gh");
             GitHubContext context = new GitHubContext();
             Instant timestamp = Instant.now();
             GitHubPushReceived event = new GitHubPushReceived(
@@ -66,7 +66,7 @@ class EventEntityMapperTest {
 
             EventEntity entity = mapper.toEntity(event);
 
-            assertThat(entity.getId()).isEqualTo("gh-xyz789");
+            assertThat(entity.getId()).isEqualTo(id.toString());
             assertThat(entity.getSource()).isEqualTo("github");
             assertThat(entity.getType()).isEqualTo("github.push_received");
             assertThat(entity.getPayload()).contains("octocat");
@@ -77,7 +77,7 @@ class EventEntityMapperTest {
         @Test
         @DisplayName("should convert ScheduledEvent to entity")
         void shouldConvertInternalEvent() {
-            Event.Id id = new Event.Id("int", "def456");
+            Event.Id id = Event.Id.generate("int");
             InternalContext context = new InternalContext();
             Instant timestamp = Instant.now();
             ScheduledEvent event = new ScheduledEvent(
@@ -86,7 +86,7 @@ class EventEntityMapperTest {
 
             EventEntity entity = mapper.toEntity(event);
 
-            assertThat(entity.getId()).isEqualTo("int-def456");
+            assertThat(entity.getId()).isEqualTo(id.toString());
             assertThat(entity.getSource()).isEqualTo("internal");
             assertThat(entity.getType()).isEqualTo("internal.scheduled_event");
             assertThat(entity.getPayload()).contains("0 0 * * *");
@@ -101,8 +101,9 @@ class EventEntityMapperTest {
         @Test
         @DisplayName("should convert entity to DiscordMessageReceived")
         void shouldConvertToDiscordEvent() {
+            Event.Id id = Event.Id.generate("disc");
             EventEntity entity = new EventEntity();
-            entity.setId("disc-abc123");
+            entity.setId(id.toString());
             entity.setSource("discord");
             entity.setType("discord.message_received");
             entity.setTimestamp(Instant.parse("2026-01-03T10:00:00Z"));
@@ -113,8 +114,7 @@ class EventEntityMapperTest {
 
             assertThat(event).isInstanceOf(DiscordMessageReceived.class);
             DiscordMessageReceived discordEvent = (DiscordMessageReceived) event;
-            assertThat(discordEvent.id().prefix()).isEqualTo("disc");
-            assertThat(discordEvent.id().instance()).isEqualTo("abc123");
+            assertThat(discordEvent.id()).isEqualTo(id);
             assertThat(discordEvent.context()).isInstanceOf(DiscordContext.class);
             assertThat(discordEvent.content()).isEqualTo("Hello world!");
             assertThat(discordEvent.authorId()).isEqualTo(123456789L);
@@ -124,7 +124,7 @@ class EventEntityMapperTest {
         @DisplayName("should convert entity to GitHubPushReceived")
         void shouldConvertToGitHubEvent() {
             EventEntity entity = new EventEntity();
-            entity.setId("gh-xyz789");
+            entity.setId(Event.Id.generate("gh").toString());
             entity.setSource("github");
             entity.setType("github.push_received");
             entity.setTimestamp(Instant.now());
@@ -144,7 +144,7 @@ class EventEntityMapperTest {
         @DisplayName("should convert entity to ScheduledEvent")
         void shouldConvertToInternalEvent() {
             EventEntity entity = new EventEntity();
-            entity.setId("int-def456");
+            entity.setId(Event.Id.generate("int").toString());
             entity.setSource("internal");
             entity.setType("internal.scheduled_event");
             entity.setTimestamp(Instant.now());
@@ -167,7 +167,7 @@ class EventEntityMapperTest {
         @Test
         @DisplayName("should preserve DiscordMessageReceived through roundtrip")
         void shouldPreserveDiscordEvent() {
-            Event.Id id = new Event.Id("disc", "abc123");
+            Event.Id id = Event.Id.generate("disc");
             DiscordContext context = new DiscordContext();
             Instant timestamp = Instant.parse("2026-01-03T10:00:00Z");
             DiscordMessageReceived original = new DiscordMessageReceived(
@@ -188,7 +188,7 @@ class EventEntityMapperTest {
         @Test
         @DisplayName("should preserve GitHubPushReceived through roundtrip")
         void shouldPreserveGitHubEvent() {
-            Event.Id id = new Event.Id("gh", "xyz789");
+            Event.Id id = Event.Id.generate("gh");
             GitHubContext context = new GitHubContext();
             Instant timestamp = Instant.now();
             GitHubPushReceived original = new GitHubPushReceived(

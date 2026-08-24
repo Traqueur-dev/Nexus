@@ -22,8 +22,10 @@ public interface EventRepository {
      * Persists an event.
      *
      * <p>Events are immutable once ingested and the store is append-only, so this
-     * is an insert rather than an upsert. Note that the current JPA adapter does
-     * not enforce that — see issue #27.
+     * is an insert, never an upsert: an implementation must not modify what is
+     * already stored under the same identifier.
+     *
+     * @throws EventAlreadyStoredException if that identifier is already taken
      */
     void save(Event event);
 

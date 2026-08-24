@@ -91,9 +91,20 @@ class EventControllerIntegrationTest {
         @Test
         @DisplayName("should return 404 for non-existent event")
         void shouldReturn404ForNonExistentEvent() throws Exception {
-            // When & Then
-            mockMvc.perform(get("/api/v1/events/{id}", "unknown-abc123"))
+            // Well-formed but never stored: a malformed id is a 400, which is a
+            // different answer to a different question.
+            String absent = Event.Id.generate("unknown").toString();
+
+            mockMvc.perform(get("/api/v1/events/{id}", absent))
                     .andExpect(status().isNotFound());
+        }
+
+        @Test
+        @DisplayName("should return 400 for an id in the pre-#27 format")
+        void shouldReturn400ForLegacyId() throws Exception {
+            // Six base-36 characters is no longer an identifier this accepts.
+            mockMvc.perform(get("/api/v1/events/{id}", "unknown-abc123"))
+                    .andExpect(status().isBadRequest());
         }
     }
 

@@ -1,5 +1,6 @@
 package fr.traqueur.nexus.application.services;
 
+import fr.traqueur.nexus.application.ports.out.EventAlreadyStoredException;
 import fr.traqueur.nexus.application.ports.out.EventRepository;
 import fr.traqueur.nexus.domain.events.Event;
 import fr.traqueur.nexus.domain.events.discord.DiscordContext;
@@ -22,6 +23,7 @@ import java.time.Instant;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @SpringBootTest
 @Testcontainers
@@ -122,10 +124,33 @@ class EventServiceIntegrationTest {
     @DisplayName("should return empty when event not found")
     void shouldReturnEmptyWhenNotFound() {
         // When
-        Optional<Event> retrieved = eventService.findById(Event.Id.fromString("unknown-abc123"));
+        Optional<Event> retrieved = eventService.findById(Event.Id.generate("unknown"));
 
         // Then
         assertThat(retrieved).isEmpty();
+    }
+
+    @Test
+    @DisplayName("should refuse to overwrite an event already stored")
+    void shouldRefuseToOverwriteStoredEvent() {
+        // The bug in #27: JpaRepository.save() issues an UPDATE on an existing
+        // primary key, so a colliding id replaced the stored event and nothing
+        // said so. On an append-only store that is silent data loss.
+        Event.Id id = Event.Id.generate("disc");
+        DiscordMessageReceived first = new DiscordMessageReceived(
+                id, new DiscordContext(), Instant.now(), "the original", 1L);
+        DiscordMessageReceived colliding = new DiscordMessageReceived(
+                id, new DiscordContext(), Instant.now(), "the overwriter", 2L);
+
+        eventRepository.save(first);
+
+        assertThatThrownBy(() -> eventRepository.save(colliding))
+                .isInstanceOf(EventAlreadyStoredException.class)
+                .hasMessageContaining(id.toString());
+
+        Optional<Event> stored = eventService.findById(id);
+        assertThat(stored).isPresent();
+        assertThat(((DiscordMessageReceived) stored.get()).content()).isEqualTo("the original");
     }
 
     @Test

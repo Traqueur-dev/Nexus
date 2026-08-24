@@ -152,6 +152,43 @@ That is what "zero dependencies" is protecting.
 
 ## 7. Decisions
 
+### ADR-008 — Event identifiers are UUID version 7, and writes only insert
+
+**Status:** accepted.
+
+An `Event.Id` was a source prefix and six base-36 characters. That is 2.2 billion
+values per source, which reads as ample and is not: by the birthday bound a
+collision becomes likely around 55 000 events for a single source, and is already
+possible in the low thousands. On collision, `JpaRepository.save()` issued an
+`UPDATE` — the stored event was replaced, with no error (#27).
+
+Two failures, and they need separate answers. Fixing only the write turns silent
+loss into an ingestion error under load; fixing only the identifier leaves the
+store willing to overwrite whenever an id repeats for any other reason.
+
+**Decision:** identifiers carry a UUID version 7, and the JPA adapter uses
+`persist()` with an explicit `flush()` rather than `save()`.
+
+Version 7 over version 4 because it is time-ordered: for an append-only store
+queried by time, ids that sort by generation cost nothing and occasionally help.
+Over a wider base-36 string because widening only moves the threshold, and a UUID
+is a format every tool already understands.
+
+**Consequences:** the id is longer and no longer memorable, which is why the
+source prefix stays — `github-0192f3c4-…` is still readable in a log. The domain
+generates the UUID itself, about twenty lines against RFC 9562, because the JDK
+only produces version 4 and `nexus-domain` accepts no third-party dependency; a
+UUID library here would be imposed on every plugin author.
+
+`EventAlreadyStoredException` belongs to the port rather than the adapter: every
+implementation owes the caller that guarantee. It should now be unreachable —
+which is precisely what was believed about six base-36 characters.
+
+The format is a persisted contract, so V2 rewrites existing rows and replaces the
+`CHECK` constraint. Migrated rows take a version 4 UUID, since PostgreSQL 17 has
+no `uuidv7()`; they lose the ordering property and keep their event, and nothing
+reads order from the id anyway.
+
 ### ADR-007 — Driving adapters live in `infrastructure`; there is no `api` module
 
 **Status:** accepted.

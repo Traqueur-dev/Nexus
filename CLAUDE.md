@@ -127,8 +127,10 @@ not be merged.
 ## Domain vocabulary
 
 - **Event** — something that happened, identified by an `Event.Id`
-  (`<source>-<6 alphanumeric chars>`, e.g. `github-a3f9k2`). Immutable once
-  ingested; the event store is append-only.
+  (`<source>-<uuid>`, e.g. `github-0192f3c4-8f2a-7c3d-9e1f-2a3b4c5d6e7f`). The
+  UUID is version 7, so ids sort by generation time. Immutable once ingested; the
+  event store is append-only, and writing over a stored event fails rather than
+  replacing it.
 - **Context** — source-specific metadata attached to an event.
 - **Workflow** — `events` + `condition` + `actions`: what to run, when.
 - **Condition** — a composable predicate over an event (`equals`, `contains`,
@@ -188,10 +190,12 @@ hierarchy means adding a rule there.
 - **Build configuration lives in `build-logic/`**, applied as
   `nexus.java-conventions` / `nexus.spring-conventions`. Dependency versions live
   in `gradle/libs.versions.toml`. Neither belongs in a module's build file.
-- **`Event.Id` collisions**: 6 base-36 characters is roughly 2.2 billion values,
-  so collisions become likely well before a million events per source. Saving
-  through `JpaRepository.save()` on an existing id issues an `UPDATE`, silently
-  overwriting an event. Tracked in the refactor epic.
+- **`JpaRepository.save()` is an upsert.** Handed an id that already exists it
+  issues an `UPDATE`, which on an append-only store means silently replacing an
+  event (#27). The JPA adapter uses `EntityManager.persist()` plus an explicit
+  `flush()`, so a duplicate id raises `EventAlreadyStoredException` instead —
+  and the write costs one query less, since `save()` must SELECT first. The same
+  trap applies to any entity that must only ever be inserted.
 - **Reflection**: event and condition instances are rebuilt reflectively from
   their record components. Renaming a record component is a silent breaking
   change — nothing fails at compile time.
