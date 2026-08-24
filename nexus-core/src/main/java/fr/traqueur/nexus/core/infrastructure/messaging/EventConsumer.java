@@ -1,7 +1,7 @@
 package fr.traqueur.nexus.core.infrastructure.messaging;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import fr.traqueur.nexus.core.application.logging.NexusLogger;
+import fr.traqueur.nexus.core.infrastructure.logging.NexusLogger;
 import fr.traqueur.nexus.core.application.mapper.EventMapper;
 import fr.traqueur.nexus.core.application.services.EventService;
 import fr.traqueur.nexus.core.interfaces.rest.dto.EventRequestDto;

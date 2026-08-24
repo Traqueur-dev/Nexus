@@ -50,7 +50,7 @@ class EventServiceIntegrationTest {
 
         // When
         eventService.save(event);
-        Optional<Event> retrieved = eventService.findById(id.toString());
+        Optional<Event> retrieved = eventService.findById(id);
 
         // Then
         assertThat(retrieved).isPresent();
@@ -76,7 +76,7 @@ class EventServiceIntegrationTest {
 
         // When
         eventService.save(event);
-        Optional<Event> retrieved = eventService.findById(id.toString());
+        Optional<Event> retrieved = eventService.findById(id);
 
         // Then
         assertThat(retrieved).isPresent();
@@ -101,7 +101,7 @@ class EventServiceIntegrationTest {
 
         // When
         eventService.save(event);
-        Optional<Event> retrieved = eventService.findById(id.toString());
+        Optional<Event> retrieved = eventService.findById(id);
 
         // Then
         assertThat(retrieved).isPresent();
@@ -116,7 +116,7 @@ class EventServiceIntegrationTest {
     @DisplayName("should return empty when event not found")
     void shouldReturnEmptyWhenNotFound() {
         // When
-        Optional<Event> retrieved = eventService.findById("unknown-abc123");
+        Optional<Event> retrieved = eventService.findById(Event.Id.fromString("unknown-abc123"));
 
         // Then
         assertThat(retrieved).isEmpty();
@@ -134,7 +134,7 @@ class EventServiceIntegrationTest {
 
         // When
         eventService.save(event);
-        Optional<Event> retrieved = eventService.findById(id.toString());
+        Optional<Event> retrieved = eventService.findById(id);
 
         // Then
         assertThat(retrieved).isPresent();

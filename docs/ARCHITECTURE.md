@@ -231,37 +231,31 @@ descriptive, which matters because it doubles as the public plugin SDK.
 
 ## 8. Current state
 
-Measured on the branch this document was written from, over
-`nexus-core/src/main/java`:
+Measured over `nexus-core/src/main/java`, after steps 1 and 2 of the migration:
 
 ```
-domain         → application     :  1   violation
-application    → infrastructure  :  3   violations
+application    → infrastructure  :  1   violation
 application    → interfaces      :  2   violations
 infrastructure → interfaces      :  1   violation
 ```
 
-| Location | Problem |
-|---|---|
-| `domain/workflow/Condition.java` | imports `application.logging.NexusLogger` (unused) |
-| `application/services/EventService.java` | imports `EventEntity`, `EventEntityRepository` |
-| `application/mapper/EventMapper.java` | imports `EventEntity` and both REST DTOs |
-| `infrastructure/messaging/EventConsumer.java` | imports `interfaces.rest.dto.EventRequestDto` |
+Down from seven. `domain` now depends on nothing internal, and `EventService`
+sees only the `EventRepository` port.
 
-The root cause is uniform: **there are no ports.** The only repository interface
-is `EventEntityRepository`, a Spring Data type living in infrastructure and
-consumed directly by the application layer.
+| Location | Problem | Resolved by |
+|---|---|---|
+| `application/mapper/EventMapper.java` | imports `EventEntity` and both REST DTOs | step 3 |
+| `infrastructure/messaging/EventConsumer.java` | imports `interfaces.rest.dto.EventRequestDto` | step 3 |
 
-Two supporting observations:
+Both remaining problems have the same two causes:
 
 - `EventMapper` carries three unrelated responsibilities — entity mapping,
   request mapping, response mapping — which is why it imports in both
-  directions. Its test already sits under `infrastructure/persistence/`, where
-  the entity half belongs.
-- `NexusLogger` sits in `application` but is a Spring component wrapping SLF4J:
-  infrastructure by nature.
-
----
+  directions at once. Its own test already sits under
+  `infrastructure/persistence/`, where the entity half belongs.
+- The RabbitMQ consumer deserializes a REST DTO. That payload is not a REST
+  concern: it is the contract for ingesting an event whatever the transport, and
+  belongs to `application` as a command.
 
 ## 9. Migration order
 

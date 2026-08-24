@@ -1,4 +1,4 @@
-package fr.traqueur.nexus.core.application.logging;
+package fr.traqueur.nexus.core.infrastructure.logging;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

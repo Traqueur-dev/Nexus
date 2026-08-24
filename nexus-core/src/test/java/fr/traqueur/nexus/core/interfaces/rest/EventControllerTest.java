@@ -70,7 +70,7 @@ class EventControllerTest {
                     Map.of("content", "Hello!", "authorId", 123456789)
             );
 
-            when(eventService.findById(eventId)).thenReturn(Optional.of(event));
+            when(eventService.findById(id)).thenReturn(Optional.of(event));
             when(eventMapper.toDto(event)).thenReturn(responseDto);
 
             // When & Then
@@ -88,11 +88,19 @@ class EventControllerTest {
         void shouldReturn404WhenNotFound() throws Exception {
             // Given
             String eventId = "unknown-abc123";
-            when(eventService.findById(eventId)).thenReturn(Optional.empty());
+            when(eventService.findById(new Event.Id("unknown", "abc123"))).thenReturn(Optional.empty());
 
             // When & Then
             mockMvc.perform(get("/api/v1/events/{id}", eventId))
                     .andExpect(status().isNotFound());
+        }
+
+        @Test
+        @DisplayName("should return 400 when the id is malformed")
+        void shouldReturn400WhenIdMalformed() throws Exception {
+            // A malformed id never reaches the service: it is rejected while parsing.
+            mockMvc.perform(get("/api/v1/events/{id}", "not-a-valid-id"))
+                    .andExpect(status().isBadRequest());
         }
     }
 }

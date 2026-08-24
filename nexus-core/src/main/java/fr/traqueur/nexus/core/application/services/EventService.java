@@ -1,9 +1,7 @@
 package fr.traqueur.nexus.core.application.services;
 
+import fr.traqueur.nexus.core.application.ports.out.EventRepository;
 import fr.traqueur.nexus.core.domain.events.Event;
-import fr.traqueur.nexus.core.application.mapper.EventMapper;
-import fr.traqueur.nexus.core.infrastructure.persistence.entities.EventEntity;
-import fr.traqueur.nexus.core.infrastructure.persistence.repositories.EventEntityRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -11,27 +9,22 @@ import java.util.Optional;
 @Service
 public class EventService {
 
-    private final EventEntityRepository eventEntityRepository;
-    private final EventMapper eventMapper;
+    private final EventRepository events;
 
-    public EventService(EventEntityRepository eventEntityRepository, EventMapper eventMapper) {
-        this.eventEntityRepository = eventEntityRepository;
-        this.eventMapper = eventMapper;
+    public EventService(EventRepository events) {
+        this.events = events;
     }
 
     public void save(Event event) {
-        EventEntity eventEntity = eventMapper.toEntity(event);
-        eventEntityRepository.save(eventEntity);
+        events.save(event);
     }
 
-    public Optional<Event> findById(String id) {
-        return eventEntityRepository.findById(id)
-                .map(eventMapper::toDomain);
+    public Optional<Event> findById(Event.Id id) {
+        return events.findById(id);
     }
 
     public Optional<Event> findLatestBySource(String source) {
-        return eventEntityRepository.findFirstBySourceOrderByTimestampDesc(source)
-                .map(eventMapper::toDomain);
+        return events.findLatestBySource(source);
     }
 
 }
