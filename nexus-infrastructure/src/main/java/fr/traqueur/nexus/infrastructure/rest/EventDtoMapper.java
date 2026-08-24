@@ -1,9 +1,8 @@
 package fr.traqueur.nexus.infrastructure.rest;
 
-import tools.jackson.databind.ObjectMapper;
+import fr.traqueur.nexus.infrastructure.rest.dto.EventResponseDto;
 import fr.traqueur.nexus.application.events.EventFactory;
 import fr.traqueur.nexus.domain.events.Event;
-import fr.traqueur.nexus.infrastructure.rest.dto.EventResponseDto;
 import org.springframework.stereotype.Component;
 
 /**
@@ -11,16 +10,18 @@ import org.springframework.stereotype.Component;
  *
  * <p>The other half of the former {@code EventMapper}. A DTO belongs to the
  * adapter that speaks its protocol, and so does the code that produces it.
+ *
+ * <p>It writes no JSON itself: producing the wire format is the message
+ * converter's job, which is what keeps this module free of any Jackson
+ * dependency.
  */
 @Component
 public class EventDtoMapper {
 
     private final EventFactory factory;
-    private final ObjectMapper json;
 
-    public EventDtoMapper(EventFactory factory, ObjectMapper json) {
+    public EventDtoMapper(EventFactory factory) {
         this.factory = factory;
-        this.json = json;
     }
 
     public EventResponseDto toDto(Event event) {
@@ -29,15 +30,7 @@ public class EventDtoMapper {
                 event.context().source(),
                 factory.typeOf(event),
                 event.timestamp(),
-                serialize(event.context()),
+                event.context(),
                 factory.extractPayload(event));
-    }
-
-    private String serialize(Object value) {
-        try {
-            return json.writeValueAsString(value);
-        } catch (Exception e) {
-            throw new IllegalStateException("Failed to serialize event context", e);
-        }
     }
 }

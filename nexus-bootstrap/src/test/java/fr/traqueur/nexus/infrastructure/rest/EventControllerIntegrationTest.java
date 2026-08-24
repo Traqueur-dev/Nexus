@@ -84,6 +84,7 @@ class EventControllerIntegrationTest {
                     .andExpect(jsonPath("$.id").value(event.id().toString()))
                     .andExpect(jsonPath("$.source").value("discord"))
                     .andExpect(jsonPath("$.type").value("discord.message_received"))
+                    .andExpect(jsonPath("$.context.source").value("discord"))
                     .andExpect(jsonPath("$.payload.content").value("Test message"));
         }
 

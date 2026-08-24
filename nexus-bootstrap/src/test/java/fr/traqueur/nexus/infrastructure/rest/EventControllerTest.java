@@ -66,7 +66,7 @@ class EventControllerTest {
                     "discord",
                     "discord.message_received",
                     Instant.parse("2026-01-04T10:00:00Z"),
-                    "{\"source\": \"discord\"}",
+                    new DiscordContext(),
                     Map.of("content", "Hello!", "authorId", 123456789)
             );
 
@@ -79,6 +79,9 @@ class EventControllerTest {
                     .andExpect(jsonPath("$.id").value("discord-abc123"))
                     .andExpect(jsonPath("$.source").value("discord"))
                     .andExpect(jsonPath("$.type").value("discord.message_received"))
+                    // An object, not an escaped string: jsonPath resolves through it
+                    // only because the converter wrote the context itself (#32).
+                    .andExpect(jsonPath("$.context.source").value("discord"))
                     .andExpect(jsonPath("$.payload.content").value("Hello!"))
                     .andExpect(jsonPath("$.payload.authorId").value(123456789));
         }
