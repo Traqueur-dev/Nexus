@@ -54,7 +54,7 @@ public class JacksonConfig {
      * plugin loaded after startup will need its subtypes registered on the live
      * mapper too — see the plugin loader work in Phase 2.
      */
-    public void registerContextSubtypes(ObjectMapper mapper) {
+    private void registerContextSubtypes(ObjectMapper mapper) {
         for (Class<? extends Context> type : contexts.registeredClasses()) {
             mapper.registerSubtypes(new NamedType(type, contexts.requireTypeForClass(type)));
         }

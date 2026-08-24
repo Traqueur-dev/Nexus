@@ -1,11 +1,9 @@
 package fr.traqueur.nexus.core.infrastructure.serialization;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.jsontype.NamedType;
-import fr.traqueur.nexus.core.application.registry.Registry;
+import fr.traqueur.nexus.core.TestFixtures;
 import fr.traqueur.nexus.core.domain.events.Context;
 import fr.traqueur.nexus.core.domain.events.ContextMetadata;
-import fr.traqueur.nexus.core.domain.events.CoreContexts;
 import fr.traqueur.nexus.core.domain.events.discord.DiscordContext;
 import fr.traqueur.nexus.core.domain.events.github.GitHubContext;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,24 +25,11 @@ class ContextSerializationTest {
     record MinecraftContext(String server) implements Context {
     }
 
-    private Registry<Context, ContextMetadata> registry;
     private ObjectMapper json;
 
     @BeforeEach
     void setUp() {
-        registry = new Registry<>(Context.class, ContextMetadata.class, ContextMetadata::type)
-                .registerAll(CoreContexts.types());
-        json = buildMapper(registry);
-    }
-
-    private static ObjectMapper buildMapper(Registry<Context, ContextMetadata> registry) {
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.addMixIn(Context.class, ContextMixin.class);
-        mapper.findAndRegisterModules();
-        for (Class<? extends Context> type : registry.registeredClasses()) {
-            mapper.registerSubtypes(new NamedType(type, registry.requireTypeForClass(type)));
-        }
-        return mapper;
+        json = TestFixtures.objectMapper();
     }
 
     @Test
@@ -67,10 +52,8 @@ class ContextSerializationTest {
     void shouldRoundTripExternalContext() throws Exception {
         // What the hardcoded @JsonSubTypes list made impossible: a context type
         // contributed by an adapter, deserialized without touching the core.
-        ObjectMapper mapper = buildMapper(
-                new Registry<Context, ContextMetadata>(Context.class, ContextMetadata.class, ContextMetadata::type)
-                        .registerAll(CoreContexts.types())
-                        .register(MinecraftContext.class));
+        ObjectMapper mapper = TestFixtures.objectMapper(
+                TestFixtures.contexts().register(MinecraftContext.class));
 
         String encoded = mapper.writeValueAsString(new MinecraftContext("survival"));
         assertThat(encoded).contains("\"source\":\"minecraft\"").contains("\"server\":\"survival\"");

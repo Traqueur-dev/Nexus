@@ -2,6 +2,8 @@ package fr.traqueur.nexus.core.application.workflow;
 
 import fr.traqueur.nexus.core.domain.workflow.Action;
 
+import java.util.Objects;
+
 /**
  * What became of one action a workflow asked for.
  *
@@ -10,12 +12,14 @@ import fr.traqueur.nexus.core.domain.workflow.Action;
  */
 public record ActionOutcome(Action action, String failure) {
 
+    static final String UNKNOWN_FAILURE = "unknown failure";
+
     public static ActionOutcome succeeded(Action action) {
         return new ActionOutcome(action, null);
     }
 
     public static ActionOutcome failed(Action action, String reason) {
-        return new ActionOutcome(action, reason == null ? "unknown failure" : reason);
+        return new ActionOutcome(action, Objects.requireNonNullElse(reason, UNKNOWN_FAILURE));
     }
 
     public boolean succeeded() {

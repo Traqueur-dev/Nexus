@@ -8,8 +8,10 @@ import fr.traqueur.nexus.core.application.registry.Registry;
 import fr.traqueur.nexus.core.application.services.EventService;
 import fr.traqueur.nexus.core.application.workflow.ActionDispatcher;
 import fr.traqueur.nexus.core.application.workflow.WorkflowEngine;
-import fr.traqueur.nexus.core.domain.events.CoreEvents;
+import fr.traqueur.nexus.core.TestFixtures;
 import fr.traqueur.nexus.core.domain.events.Event;
+import fr.traqueur.nexus.core.domain.events.discord.DiscordContext;
+import fr.traqueur.nexus.core.domain.events.discord.events.DiscordMessageReceived;
 import fr.traqueur.nexus.core.domain.events.EventMetadata;
 import fr.traqueur.nexus.core.domain.workflow.actions.SendEmailAction;
 import fr.traqueur.nexus.core.domain.workflow.exceptions.ActionExecutionException;
@@ -21,6 +23,8 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * Verifies the application layer wires up.
@@ -34,10 +38,13 @@ class ApplicationConfigTest {
 
     private final ApplicationContextRunner runner = new ApplicationContextRunner()
             .withUserConfiguration(ApplicationConfig.class)
-            .withBean(Registry.class, () -> new Registry<>(Event.class, EventMetadata.class, EventMetadata::type)
-                    .registerAll(CoreEvents.types()))
+            .withBean(Registry.class, TestFixtures::events)
             .withBean(EventRepository.class, StubEventRepository::new)
             .withBean(WorkflowRepository.class, () -> type -> List.of());
+
+    private static final Event EVENT = new DiscordMessageReceived(
+            new Event.Id("discord", "abc123"), new DiscordContext(),
+            java.time.Instant.parse("2026-01-04T10:00:00Z"), "hello", 1L);
 
     static class StubEventRepository implements EventRepository {
         @Override
@@ -75,8 +82,10 @@ class ApplicationConfigTest {
         runner.run(context -> {
             assertThat(context).hasNotFailed();
             assertThat(context).hasSingleBean(ActionDispatcher.class);
-            assertThat(context.getBean(ActionDispatcher.class)
-                    .canHandle(new SendEmailAction("s", "c", "to@example.com"))).isFalse();
+            assertThatThrownBy(() -> context.getBean(ActionDispatcher.class)
+                    .dispatch(new SendEmailAction("s", "c", "to@example.com"), EVENT))
+                    .isInstanceOf(ActionExecutionException.class)
+                    .hasMessageContaining("No handler registered");
         });
     }
 
@@ -85,8 +94,9 @@ class ApplicationConfigTest {
     void shouldPickUpActionHandler() {
         runner.withBean(ActionHandler.class, StubEmailHandler::new).run(context -> {
             assertThat(context).hasNotFailed();
-            assertThat(context.getBean(ActionDispatcher.class)
-                    .canHandle(new SendEmailAction("s", "c", "to@example.com"))).isTrue();
+            assertThatCode(() -> context.getBean(ActionDispatcher.class)
+                    .dispatch(new SendEmailAction("s", "c", "to@example.com"), EVENT))
+                    .doesNotThrowAnyException();
         });
     }
 

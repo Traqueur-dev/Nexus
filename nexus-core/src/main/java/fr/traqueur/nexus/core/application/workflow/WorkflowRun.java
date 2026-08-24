@@ -1,6 +1,7 @@
 package fr.traqueur.nexus.core.application.workflow;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * The record of one workflow reacting to one event.
@@ -24,7 +25,7 @@ public record WorkflowRun(String workflowId, String evaluationError, List<Action
     }
 
     public static WorkflowRun evaluationFailed(String workflowId, String reason) {
-        return new WorkflowRun(workflowId, reason == null ? "unknown failure" : reason, List.of());
+        return new WorkflowRun(workflowId, Objects.requireNonNullElse(reason, ActionOutcome.UNKNOWN_FAILURE), List.of());
     }
 
     /** Whether the workflow actually ran, as opposed to failing to evaluate. */

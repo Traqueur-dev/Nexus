@@ -6,7 +6,6 @@ import fr.traqueur.nexus.core.application.ports.in.IngestEventCommand;
 import fr.traqueur.nexus.core.application.ports.in.IngestionResult;
 import fr.traqueur.nexus.core.application.workflow.WorkflowRun;
 import fr.traqueur.nexus.core.domain.events.Context;
-import fr.traqueur.nexus.core.domain.events.Event;
 import fr.traqueur.nexus.core.infrastructure.logging.NexusLogger;
 import fr.traqueur.nexus.core.infrastructure.messaging.dto.EventMessage;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;

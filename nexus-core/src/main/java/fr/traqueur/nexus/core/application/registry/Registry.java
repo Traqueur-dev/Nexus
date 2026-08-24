@@ -76,14 +76,6 @@ public class Registry<T, A extends Annotation> {
         return this;
     }
 
-    @SafeVarargs
-    public final Registry<T, A> registerAll(Class<? extends T>... types) {
-        for (Class<? extends T> type : types) {
-            register(type);
-        }
-        return this;
-    }
-
     public Registry<T, A> registerAll(Collection<Class<? extends T>> types) {
         types.forEach(this::register);
         return this;
@@ -124,16 +116,7 @@ public class Registry<T, A extends Annotation> {
         return identifier;
     }
 
-    public boolean isRegistered(String type) {
-        return typeToClass.containsKey(type);
-    }
-
-    /** The registered identifiers, for diagnostics and dynamic serialization setup. */
-    public Set<String> registeredTypes() {
-        return Set.copyOf(typeToClass.keySet());
-    }
-
-    /** The registered classes, for diagnostics and dynamic serialization setup. */
+    /** The registered classes, so serialization can be configured from the registry. */
     public Set<Class<? extends T>> registeredClasses() {
         return Set.copyOf(classToType.keySet());
     }

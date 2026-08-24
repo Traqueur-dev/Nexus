@@ -1,5 +1,6 @@
 package fr.traqueur.nexus.core.application.services;
 
+import fr.traqueur.nexus.core.TestFixtures;
 import fr.traqueur.nexus.core.application.events.EventFactory;
 import fr.traqueur.nexus.core.application.ports.in.IngestEventCommand;
 import fr.traqueur.nexus.core.application.ports.out.EventRepository;
@@ -9,7 +10,6 @@ import fr.traqueur.nexus.core.application.ports.out.WorkflowRepository;
 import fr.traqueur.nexus.core.application.workflow.ActionDispatcher;
 import fr.traqueur.nexus.core.application.workflow.WorkflowEngine;
 import fr.traqueur.nexus.core.domain.events.EventType;
-import fr.traqueur.nexus.core.domain.events.CoreEvents;
 import fr.traqueur.nexus.core.domain.events.EventMetadata;
 import fr.traqueur.nexus.core.domain.events.Event;
 import fr.traqueur.nexus.core.domain.events.discord.DiscordContext;
@@ -74,11 +74,8 @@ class EventServiceTest {
     @BeforeEach
     void setUp() {
         repository = new InMemoryEventRepository();
-        Registry<Event, EventMetadata> registry =
-                new Registry<>(Event.class, EventMetadata.class, EventMetadata::type)
-                        .registerAll(CoreEvents.types());
         WorkflowRepository noWorkflows = (EventType type) -> List.of();
-        service = new EventService(repository, new EventFactory(registry),
+        service = new EventService(repository, new EventFactory(TestFixtures.events()),
                 new WorkflowEngine(noWorkflows, new ActionDispatcher(List.of())));
     }
 
@@ -92,7 +89,7 @@ class EventServiceTest {
     void shouldStoreAndReadBack() {
         DiscordMessageReceived event = discordEvent("aaaaaa", Instant.parse("2026-01-04T10:00:00Z"), "hello");
 
-        service.save(event);
+        repository.save(event);
 
         assertThat(repository.size()).isEqualTo(1);
         assertThat(service.findById(event.id())).contains(event);
@@ -110,8 +107,8 @@ class EventServiceTest {
         DiscordMessageReceived older = discordEvent("aaaaaa", Instant.parse("2026-01-04T10:00:00Z"), "older");
         DiscordMessageReceived newer = discordEvent("bbbbbb", Instant.parse("2026-01-04T12:00:00Z"), "newer");
 
-        service.save(older);
-        service.save(newer);
+        repository.save(older);
+        repository.save(newer);
 
         assertThat(service.findLatestBySource("discord")).contains(newer);
     }
@@ -124,8 +121,8 @@ class EventServiceTest {
                 new Event.Id("github", "cccccc"), new GitHubContext(),
                 Instant.parse("2026-01-04T18:00:00Z"), "someone", "nexus", "develop");
 
-        service.save(discord);
-        service.save(github);
+        repository.save(discord);
+        repository.save(github);
 
         assertThat(service.findLatestBySource("discord")).contains(discord);
         assertThat(service.findLatestBySource("github")).contains(github);
@@ -134,7 +131,7 @@ class EventServiceTest {
     @Test
     @DisplayName("should return empty for a source with no event")
     void shouldReturnEmptyForUnknownSource() {
-        service.save(discordEvent("aaaaaa", Instant.parse("2026-01-04T10:00:00Z"), "hello"));
+        repository.save(discordEvent("aaaaaa", Instant.parse("2026-01-04T10:00:00Z"), "hello"));
 
         assertThat(service.findLatestBySource("minecraft")).isEmpty();
     }

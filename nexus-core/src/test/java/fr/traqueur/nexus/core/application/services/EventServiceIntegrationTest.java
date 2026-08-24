@@ -1,5 +1,6 @@
 package fr.traqueur.nexus.core.application.services;
 
+import fr.traqueur.nexus.core.application.ports.out.EventRepository;
 import fr.traqueur.nexus.core.domain.events.Event;
 import fr.traqueur.nexus.core.domain.events.discord.DiscordContext;
 import fr.traqueur.nexus.core.domain.events.discord.events.DiscordMessageReceived;
@@ -37,6 +38,11 @@ class EventServiceIntegrationTest {
     @Autowired
     private EventService eventService;
 
+    // Seeding goes through the outbound port: EventService deliberately exposes no
+    // save() that would store an event without running its workflows.
+    @Autowired
+    private EventRepository eventRepository;
+
     @Test
     @DisplayName("should save and retrieve DiscordMessageReceived")
     void shouldSaveAndRetrieveDiscordEvent() {
@@ -49,7 +55,7 @@ class EventServiceIntegrationTest {
         );
 
         // When
-        eventService.save(event);
+        eventRepository.save(event);
         Optional<Event> retrieved = eventService.findById(id);
 
         // Then
@@ -75,7 +81,7 @@ class EventServiceIntegrationTest {
         );
 
         // When
-        eventService.save(event);
+        eventRepository.save(event);
         Optional<Event> retrieved = eventService.findById(id);
 
         // Then
@@ -100,7 +106,7 @@ class EventServiceIntegrationTest {
         );
 
         // When
-        eventService.save(event);
+        eventRepository.save(event);
         Optional<Event> retrieved = eventService.findById(id);
 
         // Then
@@ -133,7 +139,7 @@ class EventServiceIntegrationTest {
         );
 
         // When
-        eventService.save(event);
+        eventRepository.save(event);
         Optional<Event> retrieved = eventService.findById(id);
 
         // Then

@@ -8,7 +8,6 @@ import fr.traqueur.nexus.core.domain.events.EventMetadata;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.RecordComponent;
 import java.time.Instant;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -51,27 +50,23 @@ public class EventFactory {
      */
     public Event create(String type, Event.Id id, Context context, Instant timestamp, Map<String, Object> payload) {
         Class<? extends Event> eventClass = registry.requireClassForType(type);
-        RecordComponent[] components = eventClass.getRecordComponents();
-        if (components == null) {
-            throw new IllegalStateException("Event type '%s' (%s) must be a record".formatted(type, eventClass.getName()));
-        }
+        RecordComponent[] components = componentsOf(eventClass);
+        Map<String, Object> values = payload == null ? Map.of() : payload;
 
         Object[] args = new Object[components.length];
+        Class<?>[] paramTypes = new Class<?>[components.length];
         for (int i = 0; i < components.length; i++) {
             RecordComponent component = components[i];
+            paramTypes[i] = component.getType();
             args[i] = switch (component.getName()) {
                 case ID -> id;
                 case CONTEXT -> context;
                 case TIMESTAMP -> timestamp;
-                default -> convertPayloadValue(
-                        payload == null ? null : payload.get(component.getName()), component.getType());
+                default -> convertPayloadValue(values.get(component.getName()), component.getType());
             };
         }
 
         try {
-            Class<?>[] paramTypes = Arrays.stream(components)
-                    .map(RecordComponent::getType)
-                    .toArray(Class<?>[]::new);
             Constructor<? extends Event> constructor = eventClass.getDeclaredConstructor(paramTypes);
             return constructor.newInstance(args);
         } catch (ReflectiveOperationException e) {
@@ -82,11 +77,7 @@ public class EventFactory {
     /** The event's own components, excluding the ones every event carries. */
     public Map<String, Object> extractPayload(Event event) {
         Map<String, Object> payload = new HashMap<>();
-        RecordComponent[] components = event.getClass().getRecordComponents();
-        if (components == null) {
-            return payload;
-        }
-        for (RecordComponent component : components) {
+        for (RecordComponent component : componentsOf(event.getClass())) {
             String name = component.getName();
             if (name.equals(ID) || name.equals(CONTEXT) || name.equals(TIMESTAMP)) {
                 continue;
@@ -98,6 +89,20 @@ public class EventFactory {
             }
         }
         return payload;
+    }
+
+    /**
+     * Event types must be records — reading and rebuilding them relies on record
+     * components. Stating that in one place keeps both directions agreeing: a
+     * non-record type used to fail on construction but round-trip silently as an
+     * empty payload.
+     */
+    private static RecordComponent[] componentsOf(Class<?> eventClass) {
+        RecordComponent[] components = eventClass.getRecordComponents();
+        if (components == null) {
+            throw new IllegalStateException("Event type %s must be a record".formatted(eventClass.getName()));
+        }
+        return components;
     }
 
     private Object convertPayloadValue(Object value, Class<?> targetType) {

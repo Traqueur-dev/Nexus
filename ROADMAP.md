@@ -66,6 +66,7 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 - [ ] Adapter SDK (= `nexus-domain` + lifecycle interface)
 - [ ] Plugin loader (discovery, classloading, versioning)
+- [ ] Dynamic queue provisioning (adapters auto-register at runtime)
 - [ ] Discord adapter
 - [ ] GitHub adapter
 - [ ] Minecraft adapter

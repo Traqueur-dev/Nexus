@@ -33,10 +33,6 @@ public class ActionDispatcher {
         }
     }
 
-    public boolean canHandle(Action action) {
-        return handlers.containsKey(action.getClass());
-    }
-
     @SuppressWarnings("unchecked")
     public void dispatch(Action action, Event event) throws ActionExecutionException {
         ActionHandler<Action> handler = (ActionHandler<Action>) handlers.get(action.getClass());

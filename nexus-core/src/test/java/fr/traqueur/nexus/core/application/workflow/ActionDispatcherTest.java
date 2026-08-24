@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @DisplayName("ActionDispatcher")
@@ -82,11 +83,13 @@ class ActionDispatcherTest {
     }
 
     @Test
-    @DisplayName("canHandle should reflect what is registered")
-    void canHandleShouldReflectRegistration() {
-        ActionDispatcher dispatcher = new ActionDispatcher(List.of(new RecordingHandler()));
+    @DisplayName("should dispatch a registered type and refuse an unregistered one")
+    void shouldDispatchRegisteredAndRefuseUnregistered() {
+        RecordingHandler handler = new RecordingHandler();
+        ActionDispatcher dispatcher = new ActionDispatcher(List.of(handler));
 
-        assertThat(dispatcher.canHandle(new LogAction("hi"))).isTrue();
-        assertThat(dispatcher.canHandle(new SendEmailAction("s", "c", "to@x"))).isFalse();
+        assertThatCode(() -> dispatcher.dispatch(new LogAction("hi"), EVENT)).doesNotThrowAnyException();
+        assertThatThrownBy(() -> dispatcher.dispatch(new SendEmailAction("s", "c", "to@x"), EVENT))
+                .isInstanceOf(ActionExecutionException.class);
     }
 }

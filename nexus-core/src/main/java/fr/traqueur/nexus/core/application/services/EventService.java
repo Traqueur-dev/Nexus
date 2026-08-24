@@ -45,10 +45,6 @@ public class EventService implements IngestEvent {
         return new IngestionResult(event, runs);
     }
 
-    public void save(Event event) {
-        events.save(event);
-    }
-
     public Optional<Event> findById(Event.Id id) {
         return events.findById(id);
     }

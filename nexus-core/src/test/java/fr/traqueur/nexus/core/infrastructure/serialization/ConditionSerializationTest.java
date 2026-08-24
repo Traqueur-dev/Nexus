@@ -2,9 +2,9 @@ package fr.traqueur.nexus.core.infrastructure.serialization;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.traqueur.nexus.core.application.registry.Registry;
+import fr.traqueur.nexus.core.TestFixtures;
 import fr.traqueur.nexus.core.domain.events.Context;
 import fr.traqueur.nexus.core.domain.events.ContextMetadata;
-import fr.traqueur.nexus.core.domain.events.CoreContexts;
 import fr.traqueur.nexus.core.domain.workflow.Condition;
 import fr.traqueur.nexus.core.domain.workflow.CoreConditions;
 import fr.traqueur.nexus.core.domain.workflow.ConditionMetadata;
@@ -28,10 +28,7 @@ class ConditionSerializationTest {
                 new Registry<>(Condition.class, ConditionMetadata.class, ConditionMetadata::type)
                         .registerAll(CoreConditions.types());
 
-        Registry<Context, ContextMetadata> contextRegistry =
-                new Registry<>(Context.class, ContextMetadata.class, ContextMetadata::type)
-                        .registerAll(CoreContexts.types());
-        JacksonConfig config = new JacksonConfig(registry, contextRegistry);
+        JacksonConfig config = new JacksonConfig(registry, TestFixtures.contexts());
         objectMapper = config.objectMapper();
     }
 

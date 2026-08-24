@@ -80,19 +80,13 @@ class RegistryTest {
         }
 
         @Test
-        @DisplayName("should be empty until something is registered")
-        void shouldStartEmpty() {
-            assertThat(eventRegistry().registeredTypes()).isEmpty();
-        }
-
-        @Test
         @DisplayName("should be idempotent when registering the same class twice")
         void shouldBeIdempotent() {
             Registry<Event, EventMetadata> registry = eventRegistry()
                     .register(OutsideEvent.class)
                     .register(OutsideEvent.class);
 
-            assertThat(registry.registeredTypes()).containsExactly("outside.something_happened");
+            assertThat(registry.registeredClasses()).containsExactly(OutsideEvent.class);
         }
     }
 
@@ -163,16 +157,6 @@ class RegistryTest {
             assertThatThrownBy(() -> eventRegistry().requireTypeForClass(OutsideEvent.class))
                     .isInstanceOf(UnknownTypeException.class)
                     .hasMessageContaining(OutsideEvent.class.getName());
-        }
-
-        @Test
-        @DisplayName("isRegistered should reflect registration")
-        void isRegisteredShouldReflectRegistration() {
-            Registry<Event, EventMetadata> registry = eventRegistry();
-
-            assertThat(registry.isRegistered("outside.something_happened")).isFalse();
-            registry.register(OutsideEvent.class);
-            assertThat(registry.isRegistered("outside.something_happened")).isTrue();
         }
     }
 }

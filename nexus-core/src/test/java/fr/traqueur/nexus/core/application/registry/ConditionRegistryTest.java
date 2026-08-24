@@ -1,7 +1,7 @@
 package fr.traqueur.nexus.core.application.registry;
 
+import fr.traqueur.nexus.core.TestFixtures;
 import fr.traqueur.nexus.core.domain.workflow.Condition;
-import fr.traqueur.nexus.core.domain.workflow.CoreConditions;
 import fr.traqueur.nexus.core.domain.workflow.ConditionMetadata;
 import fr.traqueur.nexus.core.domain.workflow.conditions.*;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,8 +17,7 @@ class ConditionRegistryTest {
 
     @BeforeEach
     void setUp() {
-        registry = new Registry<>(Condition.class, ConditionMetadata.class, ConditionMetadata::type)
-                .registerAll(CoreConditions.types());
+        registry = TestFixtures.conditions();
     }
 
     @Nested
