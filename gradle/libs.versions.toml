@@ -32,6 +32,12 @@ spring-boot-starter-mail = { module = "org.springframework.boot:spring-boot-star
 # HTTP responses are different objects with different configuration.
 jackson-databind = { module = "tools.jackson.core:jackson-databind" }
 
+# jackson-databind plus Boot's Jackson auto-configuration. Needed wherever a
+# module contributes to how the application encodes JSON, because the extension
+# point (JsonMapperBuilderCustomizer) ships with the auto-configuration and not
+# with Jackson itself.
+spring-boot-starter-jackson = { module = "org.springframework.boot:spring-boot-starter-jackson" }
+
 flyway-database-postgresql = { module = "org.flywaydb:flyway-database-postgresql" }
 postgresql = { module = "org.postgresql:postgresql" }
 

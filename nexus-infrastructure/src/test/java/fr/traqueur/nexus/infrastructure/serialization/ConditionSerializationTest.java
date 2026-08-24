@@ -29,8 +29,7 @@ class ConditionSerializationTest {
                 new Registry<>(Condition.class, ConditionMetadata.class, ConditionMetadata::type)
                         .registerAll(CoreConditions.types());
 
-        JacksonConfig config = new JacksonConfig(registry, Registries.contexts());
-        objectMapper = config.objectMapper();
+        objectMapper = TestJson.mapper(registry, Registries.contexts());
     }
 
     @Nested

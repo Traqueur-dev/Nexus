@@ -10,7 +10,9 @@ dependencies {
     implementation(libs.spring.boot.starter.data.jpa)
     implementation(libs.spring.boot.starter.amqp)
     implementation(libs.spring.boot.starter.mail)
-    implementation(libs.jackson.databind)
+    // The starter, not jackson-databind alone: this module contributes a
+    // JsonMapperBuilderCustomizer, which lives in Boot's Jackson auto-configuration.
+    implementation(libs.spring.boot.starter.jackson)
 
     runtimeOnly(libs.flyway.database.postgresql)
 
