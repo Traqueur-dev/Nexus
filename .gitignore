@@ -42,3 +42,6 @@ bin/
 
 ### Mac OS ###
 .DS_Store
+### Local developer config (not shared) ###
+CLAUDE.local.md
+.claude/settings.local.json
