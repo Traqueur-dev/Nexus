@@ -33,7 +33,7 @@ class WorkflowTest {
 
     private static Event discordMessage(String content) {
         return new DiscordMessageReceived(
-                new Event.Id("discord", "abc123"), new DiscordContext(),
+                Event.Id.generate("discord"), new DiscordContext(),
                 Instant.parse("2026-01-04T10:00:00Z"), content, 42L);
     }
 
