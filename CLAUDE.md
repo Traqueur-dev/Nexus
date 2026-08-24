@@ -80,7 +80,8 @@ Packages mirror the modules: `fr.traqueur.nexus.<layer>`, and inside
 graph — a violation fails the build, it is not a review comment.
 `./gradlew :nexus-domain:dependencies` prints `No dependencies`, which is the
 contract in one line. What the graph cannot express — one adapter package
-reaching into another — is ArchUnit's job.
+reaching into another, a missing type identifier — is checked by the ArchUnit
+rules in `nexus-bootstrap/src/test/java/fr/traqueur/nexus/architecture`.
 
 Tests live with the module they exercise. Anything that needs a Spring context
 or Testcontainers lives in `nexus-bootstrap`, because exercising the assembly is
@@ -114,7 +115,7 @@ not be merged.
    controller must not depend on each other's DTOs. Shared ingestion contracts
    belong to `application` as commands. Since adapters now live in packages of
    one module rather than in separate ones, the compiler no longer enforces
-   this — ArchUnit does (#26). It is the one rule the module graph lost.
+   this — `AdapterIsolationTest` does.
 7. **Domain types stay open.** Event, Context, Action and Condition hierarchies
    must remain extensible by external plugins — see ADR-001 in
    [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
@@ -168,7 +169,9 @@ releases. Every branch is opened from an issue.
 
 **Tests** — a test lives in the package of the code it exercises. Domain logic
 is unit-tested without Spring; anything touching PostgreSQL or RabbitMQ uses
-Testcontainers.
+Testcontainers. The rules above are themselves tested, in
+`fr.traqueur.nexus.architecture` — adding a layer, an adapter package or an open
+hierarchy means adding a rule there.
 
 ---
 

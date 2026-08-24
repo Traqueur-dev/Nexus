@@ -369,10 +369,16 @@ architecture.
 | 6 | Split into Gradle modules | Now only locks in what is already correct |
 | 7 | ArchUnit rules | Guards what a module boundary cannot express |
 
-Steps 1 to 6 are done. Step 7 remains, and ADR-007 raised its stakes: module
-boundaries catch dependencies *between* modules, but not annotations leaking
-into the domain, not layering inside a module, and — now that all adapters share
-one module — not one adapter package reaching into another.
+All seven steps are done. The rules ArchUnit adds are the ones a module boundary
+cannot express: a framework annotation leaking into the domain, layering inside a
+module, one adapter package reaching into another (ADR-007), and an open
+hierarchy whose type forgot its identifier (ADR-006) — a failure that otherwise
+surfaces at runtime, on ingestion, far from its cause.
+
+Each rule carries a `because` clause stating what it protects, so a failing build
+explains the constraint rather than only naming the violated line. One test
+checks the checker: it runs a rule against a deliberately broken type and asserts
+the report names it.
 
 Steps 1–4 keep a single module and a green build throughout, so each is
 independently reviewable and revertable.

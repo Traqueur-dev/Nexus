@@ -10,6 +10,7 @@ assertj = "3.27.7"
 # (org.testcontainers:postgresql -> org.testcontainers:testcontainers-postgresql).
 # Version pinned because the nested BOM is not propagated by dependency-management.
 testcontainers = "2.0.5"
+archunit = "1.4.1"
 
 [libraries]
 # Plugin artifacts, needed on build-logic's classpath so the convention plugins
@@ -55,6 +56,10 @@ testcontainers-junit-jupiter = { module = "org.testcontainers:testcontainers-jun
 testcontainers-postgresql = { module = "org.testcontainers:testcontainers-postgresql", version.ref = "testcontainers" }
 testcontainers-rabbitmq = { module = "org.testcontainers:testcontainers-rabbitmq", version.ref = "testcontainers" }
 awaitility = { module = "org.awaitility:awaitility" }
+# The core library, not archunit-junit5: the JUnit integration brings its own
+# Jupiter extension, and this build is on JUnit 6. Rules are checked from plain
+# @Test methods instead, which costs one line per rule and no version coupling.
+archunit = { module = "com.tngtech.archunit:archunit", version.ref = "archunit" }
 junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
 
 [plugins]

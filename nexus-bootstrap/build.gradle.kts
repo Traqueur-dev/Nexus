@@ -33,6 +33,7 @@ dependencies {
     testImplementation(libs.testcontainers.postgresql)
     testImplementation(libs.testcontainers.rabbitmq)
     testImplementation(libs.awaitility)
+    testImplementation(libs.archunit)
 }
 
 tasks.named<BootRun>("bootRun") {
