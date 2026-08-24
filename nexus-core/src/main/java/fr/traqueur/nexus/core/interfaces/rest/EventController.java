@@ -1,6 +1,5 @@
 package fr.traqueur.nexus.core.interfaces.rest;
 
-import fr.traqueur.nexus.core.application.mapper.EventMapper;
 import fr.traqueur.nexus.core.application.services.EventService;
 import fr.traqueur.nexus.core.domain.events.Event;
 import fr.traqueur.nexus.core.interfaces.rest.dto.EventResponseDto;
@@ -16,18 +15,18 @@ import org.springframework.web.bind.annotation.RestController;
 public class EventController {
 
     private final EventService eventService;
-    private final EventMapper eventMapper;
+    private final EventDtoMapper eventDtoMapper;
 
-    public EventController(EventService eventService, EventMapper eventMapper) {
+    public EventController(EventService eventService, EventDtoMapper eventDtoMapper) {
         this.eventService = eventService;
-        this.eventMapper = eventMapper;
+        this.eventDtoMapper = eventDtoMapper;
     }
 
     @GetMapping("/{id}")
     public EventResponseDto getEvent(@PathVariable String id) {
         Event.Id eventId = parseId(id);
         return eventService.findById(eventId)
-                .map(eventMapper::toDto)
+                .map(eventDtoMapper::toDto)
                 .orElseThrow(() -> new EventNotFoundException("Event not found with id: " + id));
     }
 

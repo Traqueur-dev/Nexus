@@ -3,7 +3,7 @@ package fr.traqueur.nexus.core.interfaces.rest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.traqueur.nexus.core.application.services.EventService;
 import fr.traqueur.nexus.core.domain.events.Event;
-import fr.traqueur.nexus.core.interfaces.rest.dto.EventRequestDto;
+import fr.traqueur.nexus.core.infrastructure.messaging.dto.EventMessage;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -60,7 +60,7 @@ class EventControllerIntegrationTest {
         @DisplayName("should retrieve event created via RabbitMQ")
         void shouldRetrieveCreatedEvent() throws Exception {
             // Given - Send event via RabbitMQ
-            EventRequestDto request = new EventRequestDto(
+            EventMessage request = new EventMessage(
                     "discord",
                     "discord.message_received",
                     Instant.parse("2026-01-04T12:30:00Z"),

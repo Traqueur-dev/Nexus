@@ -1,7 +1,7 @@
 package fr.traqueur.nexus.core.interfaces.rest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import fr.traqueur.nexus.core.application.mapper.EventMapper;
+
 import fr.traqueur.nexus.core.application.services.EventService;
 import fr.traqueur.nexus.core.domain.events.Event;
 import fr.traqueur.nexus.core.domain.events.discord.DiscordContext;
@@ -38,7 +38,7 @@ class EventControllerTest {
     private EventService eventService;
 
     @MockitoBean
-    private EventMapper eventMapper;
+    private EventDtoMapper eventDtoMapper;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -71,7 +71,7 @@ class EventControllerTest {
             );
 
             when(eventService.findById(id)).thenReturn(Optional.of(event));
-            when(eventMapper.toDto(event)).thenReturn(responseDto);
+            when(eventDtoMapper.toDto(event)).thenReturn(responseDto);
 
             // When & Then
             mockMvc.perform(get("/api/v1/events/{id}", eventId))

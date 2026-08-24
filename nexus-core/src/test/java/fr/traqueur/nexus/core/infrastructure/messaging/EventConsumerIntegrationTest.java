@@ -2,7 +2,7 @@ package fr.traqueur.nexus.core.infrastructure.messaging;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.traqueur.nexus.core.application.services.EventService;
-import fr.traqueur.nexus.core.interfaces.rest.dto.EventRequestDto;
+import fr.traqueur.nexus.core.infrastructure.messaging.dto.EventMessage;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -46,7 +46,7 @@ class EventConsumerIntegrationTest {
     @DisplayName("should consume Discord event from RabbitMQ and save to database")
     void shouldConsumeDiscordEvent() throws Exception {
         // Given
-        EventRequestDto request = new EventRequestDto(
+        EventMessage request = new EventMessage(
                 "discord",
                 "discord.message_received",
                 Instant.parse("2026-01-05T10:00:00Z"),
@@ -69,7 +69,7 @@ class EventConsumerIntegrationTest {
     @DisplayName("should consume GitHub event from RabbitMQ and save to database")
     void shouldConsumeGitHubEvent() throws Exception {
         // Given
-        EventRequestDto request = new EventRequestDto(
+        EventMessage request = new EventMessage(
                 "github",
                 "github.push_received",
                 Instant.parse("2026-01-05T11:00:00Z"),
@@ -91,7 +91,7 @@ class EventConsumerIntegrationTest {
     @DisplayName("should consume Internal event from RabbitMQ and save to database")
     void shouldConsumeInternalEvent() throws Exception {
         // Given
-        EventRequestDto request = new EventRequestDto(
+        EventMessage request = new EventMessage(
                 "internal",
                 "internal.scheduled_event",
                 Instant.parse("2026-01-05T12:00:00Z"),
@@ -113,7 +113,7 @@ class EventConsumerIntegrationTest {
     @DisplayName("should route event to correct queue based on routing key pattern")
     void shouldRouteToCorrectQueue() throws Exception {
         // Given - Using a different event type but same source prefix
-        EventRequestDto request = new EventRequestDto(
+        EventMessage request = new EventMessage(
                 "discord",
                 "discord.message_received",
                 Instant.now(),

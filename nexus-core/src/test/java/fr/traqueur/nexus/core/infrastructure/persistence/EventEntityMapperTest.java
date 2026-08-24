@@ -1,7 +1,7 @@
 package fr.traqueur.nexus.core.infrastructure.persistence;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import fr.traqueur.nexus.core.application.mapper.EventMapper;
+import fr.traqueur.nexus.core.application.events.EventFactory;
 import fr.traqueur.nexus.core.application.registry.Registry;
 import fr.traqueur.nexus.core.domain.events.Context;
 import fr.traqueur.nexus.core.domain.events.CoreEvents;
@@ -24,9 +24,9 @@ import java.time.Instant;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class EventMapperTest {
+class EventEntityMapperTest {
 
-    private EventMapper mapper;
+    private EventEntityMapper mapper;
 
     @BeforeEach
     void setUp() {
@@ -35,7 +35,7 @@ class EventMapperTest {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.addMixIn(Context.class, ContextMixin.class);
         objectMapper.findAndRegisterModules(); // For Instant support
-        mapper = new EventMapper(registry, objectMapper);
+        mapper = new EventEntityMapper(new EventFactory(registry), objectMapper);
     }
 
     @Nested

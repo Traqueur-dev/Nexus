@@ -231,31 +231,39 @@ descriptive, which matters because it doubles as the public plugin SDK.
 
 ## 8. Current state
 
-Measured over `nexus-core/src/main/java`, after steps 1 and 2 of the migration:
+Measured over `nexus-core/src/main/java`, after steps 1 to 3 of the migration:
 
 ```
-application    → infrastructure  :  1   violation
-application    → interfaces      :  2   violations
-infrastructure → interfaces      :  1   violation
+application    → domain          :  8
+infrastructure → domain          : 19
+infrastructure → application     :  7
+interfaces     → domain          :  2
+interfaces     → application     :  2
 ```
 
-Down from seven. `domain` now depends on nothing internal, and `EventService`
-sees only the `EventRepository` port.
+**No inward violations.** Every arrow points inward, no adapter depends on
+another, and `domain` imports nothing from Spring, Jakarta or Jackson.
 
-| Location | Problem | Resolved by |
-|---|---|---|
-| `application/mapper/EventMapper.java` | imports `EventEntity` and both REST DTOs | step 3 |
-| `infrastructure/messaging/EventConsumer.java` | imports `interfaces.rest.dto.EventRequestDto` | step 3 |
+Started at seven violations:
 
-Both remaining problems have the same two causes:
+| Was | Now |
+|---|---|
+| `domain` → `application` (`NexusLogger`) | logger moved to infrastructure; unused import removed |
+| `application` → `infrastructure` (`EventEntity`, `EventEntityRepository`) | behind the `EventRepository` port |
+| `application` → `interfaces` (both REST DTOs) | `EventMapper` split by layer |
+| `infrastructure` → `interfaces` (`EventRequestDto`) | ingestion contract moved to `IngestEventCommand` |
 
-- `EventMapper` carries three unrelated responsibilities — entity mapping,
-  request mapping, response mapping — which is why it imports in both
-  directions at once. Its own test already sits under
-  `infrastructure/persistence/`, where the entity half belongs.
-- The RabbitMQ consumer deserializes a REST DTO. That payload is not a REST
-  concern: it is the contract for ingesting an event whatever the transport, and
-  belongs to `application` as a command.
+The former `EventMapper` became three pieces, each where it belongs:
+
+- `application/events/EventFactory` — builds and decomposes events, needs only
+  the `Registry`
+- `infrastructure/persistence/EventEntityMapper` — entity translation and the
+  JSON encoding of the jsonb columns
+- `interfaces/rest/EventDtoMapper` — the REST representation
+
+This is enforced by convention only. The Gradle split (step 6) hands it to the
+compiler, and ArchUnit (step 7) guards the rules a module boundary cannot
+express.
 
 ## 9. Migration order
 

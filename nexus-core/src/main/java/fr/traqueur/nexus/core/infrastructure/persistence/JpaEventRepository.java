@@ -1,6 +1,5 @@
 package fr.traqueur.nexus.core.infrastructure.persistence;
 
-import fr.traqueur.nexus.core.application.mapper.EventMapper;
 import fr.traqueur.nexus.core.application.ports.out.EventRepository;
 import fr.traqueur.nexus.core.domain.events.Event;
 import fr.traqueur.nexus.core.infrastructure.persistence.entities.EventEntity;
@@ -20,9 +19,9 @@ import java.util.Optional;
 public class JpaEventRepository implements EventRepository {
 
     private final EventEntityRepository entities;
-    private final EventMapper mapper;
+    private final EventEntityMapper mapper;
 
-    public JpaEventRepository(EventEntityRepository entities, EventMapper mapper) {
+    public JpaEventRepository(EventEntityRepository entities, EventEntityMapper mapper) {
         this.entities = entities;
         this.mapper = mapper;
     }

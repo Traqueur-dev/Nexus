@@ -1,6 +1,12 @@
 package fr.traqueur.nexus.core.application.services;
 
+import fr.traqueur.nexus.core.application.events.EventFactory;
+import fr.traqueur.nexus.core.application.ports.in.IngestEventCommand;
 import fr.traqueur.nexus.core.application.ports.out.EventRepository;
+import fr.traqueur.nexus.core.application.registry.Registry;
+import fr.traqueur.nexus.core.application.registry.UnknownTypeException;
+import fr.traqueur.nexus.core.domain.events.CoreEvents;
+import fr.traqueur.nexus.core.domain.events.EventMetadata;
 import fr.traqueur.nexus.core.domain.events.Event;
 import fr.traqueur.nexus.core.domain.events.discord.DiscordContext;
 import fr.traqueur.nexus.core.domain.events.discord.events.DiscordMessageReceived;
@@ -17,6 +23,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * Unit test for {@link EventService}.
@@ -62,7 +69,10 @@ class EventServiceTest {
     @BeforeEach
     void setUp() {
         repository = new InMemoryEventRepository();
-        service = new EventService(repository);
+        Registry<Event, EventMetadata> registry =
+                new Registry<>(Event.class, EventMetadata.class, EventMetadata::type)
+                        .registerAll(CoreEvents.types());
+        service = new EventService(repository, new EventFactory(registry));
     }
 
     private static DiscordMessageReceived discordEvent(String instance, Instant at, String content) {
@@ -120,5 +130,57 @@ class EventServiceTest {
         service.save(discordEvent("aaaaaa", Instant.parse("2026-01-04T10:00:00Z"), "hello"));
 
         assertThat(service.findLatestBySource("minecraft")).isEmpty();
+    }
+
+    @Test
+    @DisplayName("should build, identify and store an ingested event")
+    void shouldIngestCommand() {
+        IngestEventCommand command = new IngestEventCommand(
+                "discord",
+                "discord.message_received",
+                Instant.parse("2026-01-04T10:00:00Z"),
+                new DiscordContext(),
+                Map.of("content", "ingested", "authorId", 7L));
+
+        Event ingested = service.ingest(command);
+
+        assertThat(ingested).isInstanceOf(DiscordMessageReceived.class);
+        assertThat(ingested.id().prefix()).isEqualTo("discord");
+        assertThat(((DiscordMessageReceived) ingested).content()).isEqualTo("ingested");
+        assertThat(((DiscordMessageReceived) ingested).authorId()).isEqualTo(7L);
+        assertThat(service.findById(ingested.id())).contains(ingested);
+    }
+
+    @Test
+    @DisplayName("should give each ingested event its own identifier")
+    void shouldGenerateDistinctIdentifiers() {
+        IngestEventCommand command = new IngestEventCommand(
+                "discord",
+                "discord.message_received",
+                Instant.parse("2026-01-04T10:00:00Z"),
+                new DiscordContext(),
+                Map.of("content", "same payload", "authorId", 7L));
+
+        Event first = service.ingest(command);
+        Event second = service.ingest(command);
+
+        assertThat(first.id()).isNotEqualTo(second.id());
+        assertThat(repository.size()).isEqualTo(2);
+    }
+
+    @Test
+    @DisplayName("should reject an unknown event type")
+    void shouldRejectUnknownType() {
+        IngestEventCommand command = new IngestEventCommand(
+                "discord",
+                "discord.not_a_real_type",
+                Instant.parse("2026-01-04T10:00:00Z"),
+                new DiscordContext(),
+                Map.of());
+
+        assertThatThrownBy(() -> service.ingest(command))
+                .isInstanceOf(UnknownTypeException.class)
+                .hasMessageContaining("discord.not_a_real_type");
+        assertThat(repository.size()).isZero();
     }
 }
