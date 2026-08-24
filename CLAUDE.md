@@ -1,47 +1,167 @@
-# Instructions for Claude
+# Nexus — Developer Guide
 
-## Strict Rules for This Project
+Personal event hub for developers: ingest events from external sources (Discord,
+GitHub, schedulers…), persist them, and run user-defined workflows against them.
 
-This project is a learning exercise. Claude must:
+This file is the entry point for anyone — human or tooling — working on the
+codebase. It describes how the project is built, how it is structured, and which
+rules must hold. For the full architectural rationale, see
+[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
-- **NEVER** write complete backend Java code
-- **NEVER** provide direct solutions to problems
-- Act as a **mentor/reviewer**
-- Ask questions to guide toward the solution
-- Point to official documentation
-- Explain theoretical concepts
-- Review submitted code and suggest improvements
+---
 
-## Acceptable Responses
+## Stack
 
-- "Check the Spring docs on X: [link]"
-- "What have you tried?"
-- "The pattern you need is called X, look it up"
-- "Your code has an issue here, think about Y"
-- "What are the tradeoffs between A and B in your opinion?"
-- Explaining concepts with diagrams or pseudocode
-- Validating or challenging a proposed architecture
+| Concern | Choice |
+|---|---|
+| Language | Java 25 (Gradle toolchain) |
+| Framework | Spring Boot 4.0.1 |
+| Build | Gradle 9.2, Kotlin DSL, multi-module |
+| Database | PostgreSQL 17 + Flyway migrations |
+| Messaging | RabbitMQ 4 (topic exchange `nexus.events`) |
+| Cache | Redis 7 (provisioned, not wired yet) |
+| Tests | JUnit 5, Testcontainers, Awaitility |
 
-## Forbidden Responses
+Virtual threads are enabled (`spring.threads.virtual.enabled=true`).
 
-- Complete Java code blocks for the backend
-- Copy-paste ready implementations
-- Direct solutions without pedagogical explanation
-- Fixing code directly (suggest direction instead)
+---
 
-## Exceptions
+## Prerequisites
 
-Claude CAN write code for:
+- **JDK 25** — the Gradle toolchain requires it; the build fails on older JDKs.
+- **Docker** — required both to run the app locally and to run the integration
+  tests (Testcontainers starts real PostgreSQL and RabbitMQ containers).
 
-- Configuration files (Gradle, YAML, Docker, etc.)
-- Documentation (README, etc.)
-- Frontend (if requested)
-- Short examples to illustrate a concept (< 10 lines)
+---
 
-## Reset Phrase
+## Common commands
 
-If Claude starts coding, the user can say:
+```bash
+# Start backing services (PostgreSQL, RabbitMQ, Redis)
+docker compose up -d
 
-> "Mentor mode"
+# Run the application — activates the `dev` profile automatically
+./gradlew bootRun
 
-And Claude must immediately refocus.
+# Full build (compile + test)
+./gradlew build
+
+# Tests only
+./gradlew test
+
+# A single test class
+./gradlew test --tests '*ConditionSerializationTest'
+```
+
+`bootRun` is preconfigured with `--spring.profiles.active=dev`, which points the
+app at the services declared in `compose.yml` (all credentials are `nexus`
+/ `nexus` locally).
+
+---
+
+## Module layout
+
+The codebase is being restructured into a hexagonal architecture. Target layout:
+
+```
+nexus-domain          Pure Java. Zero dependencies. Also the public plugin SDK.
+nexus-application     Use cases + port interfaces (in and out).
+nexus-api             Driving adapters: REST controllers, WebSocket.
+nexus-infrastructure  Driven adapters: JPA, RabbitMQ, Redis, serialization.
+nexus-plugin-loader   Discovery and lifecycle of external adapters.
+nexus-bootstrap       @SpringBootApplication, wiring, produces the runnable jar.
+```
+
+Until the split lands, the same separation exists as packages under
+`nexus-core/src/main/java/fr/traqueur/nexus/core/`.
+
+---
+
+## Architecture rules
+
+These are invariants, not preferences. A change that breaks one of them should
+not be merged.
+
+1. **Dependencies point inward.** `domain` depends on nothing.
+   `application` depends only on `domain`. Adapters depend on `application` and
+   `domain`, never on each other.
+2. **`nexus-domain` has zero third-party dependencies.** No Spring, no Jakarta,
+   no Jackson. It ships to third-party plugin authors as-is; anything added
+   there is imposed on every plugin.
+3. **The domain decides, adapters act.** Domain code is pure: same inputs, same
+   outputs, no I/O. An `Action` is a *description* of an intent, never its
+   execution.
+4. **Crossing a boundary goes through a port.** `application` defines interfaces
+   (`ports/in`, `ports/out`); `infrastructure` implements them. Application code
+   must never import a JPA entity, a Spring Data repository, or a REST DTO.
+5. **Adapters do not share types.** The RabbitMQ consumer and the REST
+   controller must not depend on each other's DTOs. Shared ingestion contracts
+   belong to `application` as commands.
+6. **Domain types stay open.** Event, Context, Action and Condition hierarchies
+   must remain extensible by external plugins — see ADR-001 in
+   [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+7. **Internal adapters use the public SDK.** The bundled Discord and GitHub
+   adapters get no privileged access a third-party plugin lacks.
+
+---
+
+## Domain vocabulary
+
+- **Event** — something that happened, identified by an `Event.Id`
+  (`<source>-<6 alphanumeric chars>`, e.g. `github-a3f9k2`). Immutable once
+  ingested; the event store is append-only.
+- **Context** — source-specific metadata attached to an event.
+- **Workflow** — `events` + `condition` + `actions`: what to run, when.
+- **Condition** — a composable predicate over an event (`equals`, `contains`,
+  `composite`, `group`, `always`).
+- **Action** — a *described intent* (send an email, call a webhook). It carries
+  data only; execution happens in an adapter behind a port.
+- **Adapter** — a source of events. Either bundled in this repo or supplied as
+  an external plugin. Both use the same SDK.
+
+Types are registered by annotation (`@EventMetadata`, `@ConditionMetadata`) and
+resolved at runtime through `Registry`, which maps a stable string type
+(`github.push_received`) to a class. That string is a persisted contract:
+**renaming it breaks stored rows and in-flight messages.**
+
+---
+
+## Conventions
+
+**Branches** — `<type>/<issue-number>-<slug>`, e.g.
+`feature/6-workflow-persistence`, `refactor/19-hexagonal-architecture`.
+Types: `feature`, `refactor`, `fix`, `chore`.
+
+**Commits** — Conventional Commits with a scope matching the layer or module:
+```
+feat(domain): add condition serialization
+fix(infrastructure): prevent silent event overwrite
+```
+Scopes in use: `domain`, `application`, `infrastructure`, `api`, `core`, `ci`,
+`docs`.
+
+**Flow** — feature branches target `develop`; `develop` merges into `main` for
+releases. Every branch is opened from an issue.
+
+**Tests** — a test lives in the package of the code it exercises. Domain logic
+is unit-tested without Spring; anything touching PostgreSQL or RabbitMQ uses
+Testcontainers.
+
+---
+
+## Known pitfalls
+
+- **Gradle multi-module + Spring Boot**: apply the `org.springframework.boot`
+  plugin with `apply false` at the root. Only `nexus-bootstrap` may produce a
+  boot jar — a module that builds one cannot be consumed as a dependency.
+- **`Event.Id` collisions**: 6 base-36 characters is roughly 2.2 billion values,
+  so collisions become likely well before a million events per source. Saving
+  through `JpaRepository.save()` on an existing id issues an `UPDATE`, silently
+  overwriting an event. Tracked in the refactor epic.
+- **Reflection**: event and condition instances are rebuilt reflectively from
+  their record components. Renaming a record component is a silent breaking
+  change — nothing fails at compile time.
+- **`spring.jpa.open-in-view=false`** is deliberate. Entities must be mapped to
+  domain objects inside the transaction.
+- **Integration tests need Docker.** Without a running daemon they fail at
+  startup rather than being skipped.
