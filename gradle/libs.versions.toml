@@ -1,12 +1,15 @@
 [versions]
 java = "25"
-springBoot = "4.0.1"
+springBoot = "4.1.1"
 springDependencyManagement = "1.1.7"
-postgresql = "42.7.8"
-testcontainers = "1.21.4"
-junit = "5.11.4"
-assertj = "3.26.3"
-awaitility = "4.2.0"
+# Aligned on what the Spring Boot BOM imposes, so modules without the BOM
+# (nexus-domain, nexus-application) cannot drift from the ones that have it.
+junit = "6.0.3"
+assertj = "3.27.7"
+# Testcontainers 2.x renamed every module with a testcontainers- prefix
+# (org.testcontainers:postgresql -> org.testcontainers:testcontainers-postgresql).
+# Version pinned because the nested BOM is not propagated by dependency-management.
+testcontainers = "2.0.5"
 
 [libraries]
 # Plugin artifacts, needed on build-logic's classpath so the convention plugins
@@ -15,22 +18,22 @@ awaitility = "4.2.0"
 plugin-spring-boot = { module = "org.springframework.boot:spring-boot-gradle-plugin", version.ref = "springBoot" }
 plugin-spring-dependency-management = { module = "io.spring.gradle:dependency-management-plugin", version.ref = "springDependencyManagement" }
 
-# Versions omitted where the Spring Boot BOM manages them — that is the point of
-# applying io.spring.dependency-management.
+# Versions omitted throughout: the Spring Boot BOM manages them, which is the
+# point of applying io.spring.dependency-management.
 spring-boot-starter-web = { module = "org.springframework.boot:spring-boot-starter-web" }
 spring-boot-starter-data-jpa = { module = "org.springframework.boot:spring-boot-starter-data-jpa" }
 spring-boot-starter-flyway = { module = "org.springframework.boot:spring-boot-starter-flyway" }
 spring-boot-starter-amqp = { module = "org.springframework.boot:spring-boot-starter-amqp" }
 spring-boot-starter-mail = { module = "org.springframework.boot:spring-boot-starter-mail" }
-jackson-datatype-jsr310 = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jsr310" }
-# Jackson 2. Spring Boot 4 ships Jackson 3 (tools.jackson.*) for its own message
-# converters; the codebase is written against Jackson 2 (com.fasterxml.jackson.*)
-# and used to get it transitively through jackson-datatype-jsr310. Declared
-# explicitly so the dependency is a decision rather than an accident.
-jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind" }
+
+# Jackson 3 — the one Spring Boot 4 wires into its message converters. The BOM
+# manages both major versions (jackson-bom 3.x and jackson-2-bom 2.x); using the
+# 2.x line here would mean the application's ObjectMapper and the one serializing
+# HTTP responses are different objects with different configuration.
+jackson-databind = { module = "tools.jackson.core:jackson-databind" }
 
 flyway-database-postgresql = { module = "org.flywaydb:flyway-database-postgresql" }
-postgresql = { module = "org.postgresql:postgresql", version.ref = "postgresql" }
+postgresql = { module = "org.postgresql:postgresql" }
 
 # Test essentials, applied by nexus.java-conventions. Versions are explicit
 # rather than BOM-managed so nexus-domain needs no Spring plugin at all.
@@ -42,10 +45,10 @@ spring-boot-starter-test = { module = "org.springframework.boot:spring-boot-star
 spring-boot-starter-webmvc-test = { module = "org.springframework.boot:spring-boot-starter-webmvc-test" }
 spring-boot-starter-webflux = { module = "org.springframework.boot:spring-boot-starter-webflux" }
 spring-boot-testcontainers = { module = "org.springframework.boot:spring-boot-testcontainers" }
-testcontainers-junit-jupiter = { module = "org.testcontainers:junit-jupiter", version.ref = "testcontainers" }
-testcontainers-postgresql = { module = "org.testcontainers:postgresql", version.ref = "testcontainers" }
-testcontainers-rabbitmq = { module = "org.testcontainers:rabbitmq", version.ref = "testcontainers" }
-awaitility = { module = "org.awaitility:awaitility", version.ref = "awaitility" }
+testcontainers-junit-jupiter = { module = "org.testcontainers:testcontainers-junit-jupiter", version.ref = "testcontainers" }
+testcontainers-postgresql = { module = "org.testcontainers:testcontainers-postgresql", version.ref = "testcontainers" }
+testcontainers-rabbitmq = { module = "org.testcontainers:testcontainers-rabbitmq", version.ref = "testcontainers" }
+awaitility = { module = "org.awaitility:awaitility" }
 junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
 
 [plugins]

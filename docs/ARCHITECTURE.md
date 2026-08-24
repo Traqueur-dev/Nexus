@@ -300,10 +300,12 @@ Two things the split surfaced that a single module had hidden:
 - **`nexus-api` depends on Jackson only because of the double encoding** in
   `EventDtoMapper` (#32). Typing `EventResponseDto.context` as `Context` removes
   the dependency outright.
-- **The codebase is on Jackson 2 while Spring Boot 4 ships Jackson 3**
-  (`tools.jackson.*`). It compiled because `jackson-datatype-jsr310` pulled
-  Jackson 2 in transitively. The dependency is now declared explicitly; the
-  mismatch itself is tracked separately.
+- **The codebase was on Jackson 2 while Spring Boot 4 ships Jackson 3**
+  (`tools.jackson.*`). It compiled only because `jackson-datatype-jsr310` pulled
+  Jackson 2 in transitively, which meant the configured `ObjectMapper` and the
+  one serializing HTTP responses were different objects — mixins and custom
+  serializers applied to the first and not the second. Migrated to Jackson 3;
+  the runtime classpath now carries exactly one `jackson-databind`.
 
 ## 9. Migration order
 

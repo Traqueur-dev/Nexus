@@ -1,6 +1,6 @@
 package fr.traqueur.nexus.infrastructure;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import fr.traqueur.nexus.application.registry.Registries;
 import fr.traqueur.nexus.application.registry.Registry;
 import fr.traqueur.nexus.domain.events.Context;

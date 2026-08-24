@@ -11,7 +11,6 @@ dependencies {
     implementation(libs.spring.boot.starter.amqp)
     implementation(libs.spring.boot.starter.mail)
     implementation(libs.jackson.databind)
-    implementation(libs.jackson.datatype.jsr310)
 
     runtimeOnly(libs.flyway.database.postgresql)
 

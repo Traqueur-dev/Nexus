@@ -15,12 +15,13 @@ rules must hold. For the full architectural rationale, see
 | Concern | Choice |
 |---|---|
 | Language | Java 25 (Gradle toolchain) |
-| Framework | Spring Boot 4.0.1 |
-| Build | Gradle 9.2, Kotlin DSL, multi-module |
+| Framework | Spring Boot 4.1.1 (Spring Framework 7) |
+| Build | Gradle 9.7, Kotlin DSL, multi-module |
 | Database | PostgreSQL 17 + Flyway migrations |
+| JSON | Jackson 3 (`tools.jackson.*`) |
 | Messaging | RabbitMQ 4 (topic exchange `nexus.events`) |
 | Cache | Redis 7 (provisioned, not wired yet) |
-| Tests | JUnit 5, Testcontainers, Awaitility |
+| Tests | JUnit 6, Testcontainers 2, Awaitility |
 
 Virtual threads are enabled (`spring.threads.virtual.enabled=true`).
 
@@ -189,5 +190,14 @@ Testcontainers.
   change — nothing fails at compile time.
 - **`spring.jpa.open-in-view=false`** is deliberate. Entities must be mapped to
   domain objects inside the transaction.
+- **Jackson 3, not Jackson 2.** Spring Boot 4 wires Jackson 3
+  (`tools.jackson.*`) into its message converters. Writing against Jackson 2
+  (`com.fasterxml.jackson.databind.*`) compiles — the BOM manages both lines —
+  but produces an `ObjectMapper` that is a *different object* from the one
+  serializing HTTP responses, so mixins and custom serializers silently do not
+  apply there. Annotations stay under `com.fasterxml.jackson.annotation`.
+- **Testcontainers 2 renamed every module** with a `testcontainers-` prefix:
+  `org.testcontainers:postgresql` is now
+  `org.testcontainers:testcontainers-postgresql`.
 - **Integration tests need Docker.** Without a running daemon they fail at
   startup rather than being skipped.

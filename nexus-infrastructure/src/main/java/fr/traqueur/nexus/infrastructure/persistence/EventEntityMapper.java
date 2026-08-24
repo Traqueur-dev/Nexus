@@ -1,6 +1,6 @@
 package fr.traqueur.nexus.infrastructure.persistence;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import fr.traqueur.nexus.application.events.EventFactory;
 import fr.traqueur.nexus.domain.events.Context;
 import fr.traqueur.nexus.domain.events.Event;

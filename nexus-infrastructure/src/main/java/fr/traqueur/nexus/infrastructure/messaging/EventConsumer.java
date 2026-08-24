@@ -1,6 +1,6 @@
 package fr.traqueur.nexus.infrastructure.messaging;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import fr.traqueur.nexus.application.ports.in.IngestEvent;
 import fr.traqueur.nexus.application.ports.in.IngestEventCommand;
 import fr.traqueur.nexus.application.ports.in.IngestionResult;

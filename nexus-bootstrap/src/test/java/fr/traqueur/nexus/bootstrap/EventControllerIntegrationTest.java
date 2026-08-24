@@ -1,6 +1,6 @@
 package fr.traqueur.nexus.api.rest;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import fr.traqueur.nexus.application.services.EventService;
 import fr.traqueur.nexus.domain.events.Event;
 import fr.traqueur.nexus.infrastructure.messaging.dto.EventMessage;
