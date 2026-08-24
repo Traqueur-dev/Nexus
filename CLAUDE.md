@@ -68,16 +68,19 @@ app at the services declared in `compose.yml` (all credentials are `nexus`
 ```
 nexus-domain          Pure Java. Zero dependencies. Also the public plugin SDK.
 nexus-application     Use cases + port interfaces (in and out).
-nexus-api             Driving adapters: REST controllers, WebSocket.
-nexus-infrastructure  Driven adapters: JPA, RabbitMQ, mail, serialization.
+nexus-infrastructure  Adapters, driving and driven: REST, JPA, RabbitMQ, mail,
+                      serialization. One package per protocol.
 nexus-plugin-loader   Discovery and lifecycle of external adapters (empty).
 nexus-bootstrap       @SpringBootApplication, wiring, produces the runnable jar.
 ```
 
-Packages mirror the modules: `fr.traqueur.nexus.<layer>`. The dependency rules
-below are enforced by the module graph — a violation fails the build, it is not
-a review comment. `./gradlew :nexus-domain:dependencies` prints
-`No dependencies`, which is the contract in one line.
+Packages mirror the modules: `fr.traqueur.nexus.<layer>`, and inside
+`infrastructure` one package per technology: `rest`, `messaging`, `persistence`,
+`serialization`, `mail`. The dependency rules below are enforced by the module
+graph — a violation fails the build, it is not a review comment.
+`./gradlew :nexus-domain:dependencies` prints `No dependencies`, which is the
+contract in one line. What the graph cannot express — one adapter package
+reaching into another — is ArchUnit's job.
 
 Tests live with the module they exercise. Anything that needs a Spring context
 or Testcontainers lives in `nexus-bootstrap`, because exercising the assembly is
@@ -91,8 +94,8 @@ These are invariants, not preferences. A change that breaks one of them should
 not be merged.
 
 1. **Dependencies point inward.** `domain` depends on nothing.
-   `application` depends only on `domain`. Adapters depend on `application` and
-   `domain`, never on each other.
+   `application` depends only on `domain`. `infrastructure` depends on
+   `application` and `domain`, never the reverse.
 2. **`nexus-domain` has zero third-party dependencies.** No Spring, no Jakarta,
    no Jackson. It ships to third-party plugin authors as-is; anything added
    there is imposed on every plugin.
@@ -109,7 +112,9 @@ not be merged.
    must never import a JPA entity, a Spring Data repository, or a REST DTO.
 6. **Adapters do not share types.** The RabbitMQ consumer and the REST
    controller must not depend on each other's DTOs. Shared ingestion contracts
-   belong to `application` as commands.
+   belong to `application` as commands. Since adapters now live in packages of
+   one module rather than in separate ones, the compiler no longer enforces
+   this — ArchUnit does (#26). It is the one rule the module graph lost.
 7. **Domain types stay open.** Event, Context, Action and Condition hierarchies
    must remain extensible by external plugins — see ADR-001 in
    [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
@@ -156,8 +161,7 @@ Types: `feature`, `refactor`, `fix`, `chore`.
 feat(domain): add condition serialization
 fix(infrastructure): prevent silent event overwrite
 ```
-Scopes in use: `domain`, `application`, `infrastructure`, `api`, `core`, `ci`,
-`docs`.
+Scopes in use: `domain`, `application`, `infrastructure`, `core`, `ci`, `docs`.
 
 **Flow** — feature branches target `develop`; `develop` merges into `main` for
 releases. Every branch is opened from an issue.

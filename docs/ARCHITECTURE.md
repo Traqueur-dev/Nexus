@@ -49,39 +49,41 @@ Kept free of infrastructure, it is testable in milliseconds without Docker.
                         │nexus-application│   use cases + ports (in / out)
                         └────────▲────────┘
                                  │
-              ┌──────────────────┼──────────────────┐
-              │                  │                  │
-     ┌────────┴───────┐ ┌────────┴────────┐ ┌───────┴────────┐
-     │   nexus-api    │ │nexus-infra-      │ │nexus-plugin-   │
-     │                │ │structure         │ │loader          │
-     │ driving        │ │ driven adapters  │ │ discovery and  │
-     │ adapters:      │ │ JPA, RabbitMQ,   │ │ lifecycle of   │
-     │ REST, WebSocket│ │ Redis, SMTP      │ │ external jars  │
-     └────────▲───────┘ └────────▲─────────┘ └───────▲────────┘
-              │                  │                   │
-              └──────────────────┼───────────────────┘
-                                 │
-                       ┌─────────┴─────────┐
-                       │  nexus-bootstrap  │  @SpringBootApplication,
-                       │                   │  wiring, boot jar
-                       └───────────────────┘
+                    ┌────────────┴────────────┐
+                    │                         │
+       ┌────────────┴─────────┐     ┌─────────┴──────┐
+       │  nexus-infrastructure│     │nexus-plugin-   │
+       │                      │     │loader          │
+       │  adapters, one       │     │ discovery and  │
+       │  package per         │     │ lifecycle of   │
+       │  protocol:           │     │ external jars  │
+       │  rest, messaging,    │     └───────▲────────┘
+       │  persistence, mail,  │             │
+       │  serialization       │             │
+       └────────────▲─────────┘             │
+                    │                       │
+                    └───────────┬───────────┘
+                                │
+                      ┌─────────┴─────────┐
+                      │  nexus-bootstrap  │  @SpringBootApplication,
+                      │                   │  wiring, boot jar
+                      └───────────────────┘
 ```
 
 | Module | Contains | May depend on |
 |---|---|---|
 | `nexus-domain` | Entities, value objects, domain services, annotations | *nothing* |
 | `nexus-application` | Use cases, port interfaces, commands | `domain` |
-| `nexus-api` | REST controllers, WebSocket handlers, DTOs | `application`, `domain` |
-| `nexus-infrastructure` | JPA entities, repositories, messaging, serialization | `application`, `domain` |
+| `nexus-infrastructure` | REST controllers and DTOs, JPA entities, messaging, serialization | `application`, `domain` |
 | `nexus-plugin-loader` | Plugin discovery, classloading, lifecycle | `application`, `domain` |
 | `nexus-bootstrap` | Main class, Spring configuration, profiles | everything |
 
-**`nexus-bootstrap` exists to break a cycle.** Something has to know every
-implementation in order to wire it to its port. If that responsibility lives in
-`infrastructure`, then `infrastructure` must see `api` (or the reverse) just to
-host the main class, and the dependency graph closes on itself. An assembly
-module that everyone else ignores keeps the graph acyclic. It is also the only
-module that produces a boot jar.
+**`nexus-bootstrap` is where assembly decisions live.** Something has to know
+every implementation in order to wire it to its port, and which types are
+registered. Neither is an adapter's business: an adapter that decides what the
+application layer is made of stops being replaceable. Keeping that in a module
+nobody depends on also isolates the boot jar, which matters because a module
+producing one cannot be consumed as a dependency (see ADR-007).
 
 ---
 
@@ -91,17 +93,17 @@ module that produces a boot jar.
 |---|---|
 | Does it describe a business concept, with no I/O? | `domain` |
 | Does it orchestrate a use case, or define a contract the outside must satisfy? | `application` |
-| Does it speak a protocol or a technology (HTTP, SQL, AMQP, SMTP, JSON)? | an adapter |
+| Does it speak a protocol or a technology (HTTP, SQL, AMQP, SMTP, JSON)? | `infrastructure`, in that protocol's package |
 | Does it exist only to connect the two? | `bootstrap` |
 
 Rules of thumb:
 
 - Anything annotated `@Entity`, `@RestController`, `@RabbitListener`,
   `@Component` belongs to an adapter — never to `domain` or `application`.
-- A DTO belongs to the adapter that speaks its protocol. If two adapters need
+- A DTO belongs to the package that speaks its protocol. If two adapters need
   the same payload, it is not a DTO: it is an application-level **command**.
 - Mappers live with the technology they map to, not in a shared `mapper`
-  package. Entity mapping is infrastructure; DTO mapping is API.
+  package: `EventEntityMapper` in `persistence`, `EventDtoMapper` in `rest`.
 
 ---
 
@@ -149,6 +151,39 @@ That is what "zero dependencies" is protecting.
 ---
 
 ## 7. Decisions
+
+### ADR-007 — Driving adapters live in `infrastructure`; there is no `api` module
+
+**Status:** accepted.
+
+REST controllers, their DTOs and their exceptions lived in a `nexus-api` module,
+separate from `nexus-infrastructure`, on the grounds that driving adapters and
+driven adapters are different kinds of thing.
+
+They are — but that distinction is about the direction a call travels, not about
+what a module must protect. Both speak a protocol, both depend on `application`
+and `domain`, and neither may depend on the other. A module boundary buys
+enforcement of exactly one rule here: that `rest` and `messaging` cannot see each
+other. Five classes is a high price for one rule, and the same rule is expressible
+as an ArchUnit package rule (#26) that also covers `persistence` and `mail`,
+which the old split never did.
+
+**Decision:** one adapter module, one package per protocol —
+`infrastructure.rest`, `infrastructure.messaging`, `infrastructure.persistence`,
+`infrastructure.serialization`, `infrastructure.mail`.
+
+**Consequences:** the graph loses a node and gains nothing it was actually using.
+The cost is real and worth stating plainly: cross-adapter coupling is no longer a
+compile error. Until #26 lands, nothing stops `EventController` from importing
+`EventMessage` — it is the one guarantee this change trades away.
+
+It also removes the original justification for `nexus-bootstrap`, which was to
+break the cycle `api` and `infrastructure` would form if either hosted the main
+class. With one adapter module there is no cycle to break. Bootstrap is kept for
+two reasons that survive: it holds the assembly decisions (ADR-005 — which beans
+the application layer is made of, which types are registered), and a module that
+produces a boot jar cannot be consumed as a dependency by another, so hosting it
+in `infrastructure` would make `infrastructure` unusable to any future module.
 
 ### ADR-006 — Every open hierarchy carries a metadata annotation and a registry
 
@@ -292,20 +327,31 @@ compileClasspath - Compile classpath for source set 'main'.
 \--- project :nexus-domain
 ```
 
-No adapter sees another. Only `nexus-bootstrap` applies the Spring Boot plugin
-and produces a boot jar; every other module builds an ordinary consumable jar.
+Only `nexus-bootstrap` applies the Spring Boot plugin and produces a boot jar;
+every other module builds an ordinary consumable jar. Adapters no longer sit in
+separate modules (ADR-007), so keeping them from seeing each other is ArchUnit's
+job now, not the compiler's.
 
-Two things the split surfaced that a single module had hidden:
+Three things this surfaced that a single module had hidden:
 
-- **`nexus-api` depends on Jackson only because of the double encoding** in
-  `EventDtoMapper` (#32). Typing `EventResponseDto.context` as `Context` removes
-  the dependency outright.
+- **The double encoding in `EventDtoMapper`** (#32). It serialized the context
+  into a `String` that the message converter then serialized again, and that was
+  the only reason the REST adapter needed Jackson at all. `EventResponseDto`
+  now carries a `Context`; the converter writes it.
 - **The codebase was on Jackson 2 while Spring Boot 4 ships Jackson 3**
   (`tools.jackson.*`). It compiled only because `jackson-datatype-jsr310` pulled
   Jackson 2 in transitively, which meant the configured `ObjectMapper` and the
   one serializing HTTP responses were different objects — mixins and custom
   serializers applied to the first and not the second. Migrated to Jackson 3;
   the runtime classpath now carries exactly one `jackson-databind`.
+- **The migration then reproduced the same split in a subtler form.** A
+  `@Bean ObjectMapper` no longer replaces Boot's: `JacksonAutoConfiguration`
+  backs off on a missing `JsonMapper` bean, and the mapper it builds is
+  `@Primary`, so injection picked Boot's unconfigured one. Contexts were stored
+  without their `source` discriminator and could not be read back. The
+  serialization is now a `JsonMapperBuilderCustomizer`, which leaves one mapper
+  in the application. This was invisible until the Testcontainers suite was run
+  against a real database for the first time.
 
 ## 9. Migration order
 
@@ -323,9 +369,10 @@ architecture.
 | 6 | Split into Gradle modules | Now only locks in what is already correct |
 | 7 | ArchUnit rules | Guards what a module boundary cannot express |
 
-Steps 1 to 6 are done. Step 7 remains: module boundaries catch dependencies
-*between* modules, but not annotations leaking into the domain or layering
-inside a module.
+Steps 1 to 6 are done. Step 7 remains, and ADR-007 raised its stakes: module
+boundaries catch dependencies *between* modules, but not annotations leaking
+into the domain, not layering inside a module, and — now that all adapters share
+one module — not one adapter package reaching into another.
 
 Steps 1–4 keep a single module and a green build throughout, so each is
 independently reviewable and revertable.
