@@ -1,14 +1,18 @@
 package fr.traqueur.nexus.core.domain.events;
 
-import fr.traqueur.nexus.core.domain.events.discord.DiscordEvent;
-import fr.traqueur.nexus.core.domain.events.github.GitHubEvent;
-import fr.traqueur.nexus.core.domain.events.internal.InternalEvent;
-
 import java.security.SecureRandom;
 import java.time.Instant;
 import java.util.Objects;
 
-public sealed interface Event permits DiscordEvent, GitHubEvent, InternalEvent {
+/**
+ * An event ingested by Nexus.
+ *
+ * <p>This hierarchy is intentionally open: adapters — bundled or third-party —
+ * contribute their own event types and register them in the event registry.
+ * Implementations are expected to be immutable records annotated with
+ * {@link EventMetadata}.
+ */
+public interface Event {
 
     record Id(String prefix, String instance) {
 

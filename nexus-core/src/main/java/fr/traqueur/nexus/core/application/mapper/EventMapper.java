@@ -29,7 +29,7 @@ public class EventMapper {
     }
 
     public Event toDomain(EventEntity entity) {
-        Class<? extends Event> eventClass = registry.getClassForType(entity.getType());
+        Class<? extends Event> eventClass = registry.requireClassForType(entity.getType());
         Context context = deserialize(entity.getContext(), Context.class);
         Map<String, Object> payload = deserialize(entity.getPayload(), Map.class);
         Event.Id id = Event.Id.fromString(entity.getId());
@@ -39,7 +39,7 @@ public class EventMapper {
 
     public EventEntity toEntity(Event event) {
         String id = event.id().toString();
-        String type = registry.getTypeForClass(event.getClass());
+        String type = registry.requireTypeForClass(event.getClass());
         Instant timestamp = event.timestamp();
         String contextJson = serialize(event.context());
         RecordComponent[] components = event.getClass().getRecordComponents();
@@ -57,7 +57,7 @@ public class EventMapper {
     }
 
     public Event toDomain(EventRequestDto eventRequestDto) {
-        Class<? extends Event> eventClass = registry.getClassForType(eventRequestDto.type());
+        Class<? extends Event> eventClass = registry.requireClassForType(eventRequestDto.type());
         Context context = deserialize(eventRequestDto.context(), Context.class);
         Map<String, Object> payload = eventRequestDto.payload();
         Event.Id id = Event.Id.generate(eventRequestDto.source());
@@ -127,7 +127,7 @@ public class EventMapper {
         return new EventResponseDto(
                 event.id().toString(),
                 event.context().source(),
-                registry.getTypeForClass(event.getClass()),
+                registry.requireTypeForClass(event.getClass()),
                 event.timestamp(),
                 serialize(event.context()),
                 payload

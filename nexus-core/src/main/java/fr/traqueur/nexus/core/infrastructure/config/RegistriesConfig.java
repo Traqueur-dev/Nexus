@@ -1,10 +1,12 @@
 package fr.traqueur.nexus.core.infrastructure.config;
 
 import fr.traqueur.nexus.core.application.registry.Registry;
+import fr.traqueur.nexus.core.domain.events.CoreEvents;
 import fr.traqueur.nexus.core.domain.events.Event;
 import fr.traqueur.nexus.core.domain.events.EventMetadata;
 import fr.traqueur.nexus.core.domain.workflow.Condition;
 import fr.traqueur.nexus.core.domain.workflow.ConditionMetadata;
+import fr.traqueur.nexus.core.domain.workflow.CoreConditions;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -13,10 +15,14 @@ public class RegistriesConfig {
 
     @Bean
     public Registry<Event, EventMetadata> eventRegistry() {
-        return new Registry<>(Event.class, EventMetadata.class, EventMetadata::type);
+        return new Registry<>(Event.class, EventMetadata.class, EventMetadata::type)
+                .registerAll(CoreEvents.types());
     }
 
     @Bean
-    public Registry<Condition, ConditionMetadata> conditionRegistry() { return new Registry<>(Condition.class, ConditionMetadata.class, ConditionMetadata::type); }
+    public Registry<Condition, ConditionMetadata> conditionRegistry() {
+        return new Registry<>(Condition.class, ConditionMetadata.class, ConditionMetadata::type)
+                .registerAll(CoreConditions.types());
+    }
 
 }

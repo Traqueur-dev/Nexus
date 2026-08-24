@@ -3,6 +3,7 @@ package fr.traqueur.nexus.core.infrastructure.serialization;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.traqueur.nexus.core.application.registry.Registry;
 import fr.traqueur.nexus.core.domain.workflow.Condition;
+import fr.traqueur.nexus.core.domain.workflow.CoreConditions;
 import fr.traqueur.nexus.core.domain.workflow.ConditionMetadata;
 import fr.traqueur.nexus.core.domain.workflow.conditions.*;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,7 +22,8 @@ class ConditionSerializationTest {
     @BeforeEach
     void setUp() {
         Registry<Condition, ConditionMetadata> registry =
-                new Registry<>(Condition.class, ConditionMetadata.class, ConditionMetadata::type);
+                new Registry<>(Condition.class, ConditionMetadata.class, ConditionMetadata::type)
+                        .registerAll(CoreConditions.types());
 
         JacksonConfig config = new JacksonConfig(registry);
         objectMapper = config.objectMapper();

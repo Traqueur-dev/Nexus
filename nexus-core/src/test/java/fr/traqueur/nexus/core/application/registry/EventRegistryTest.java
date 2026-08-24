@@ -1,5 +1,6 @@
 package fr.traqueur.nexus.core.application.registry;
 
+import fr.traqueur.nexus.core.domain.events.CoreEvents;
 import fr.traqueur.nexus.core.domain.events.Event;
 import fr.traqueur.nexus.core.domain.events.EventMetadata;
 import fr.traqueur.nexus.core.domain.events.discord.events.DiscordMessageReceived;
@@ -18,7 +19,8 @@ class EventRegistryTest {
 
     @BeforeEach
     void setUp() {
-        registry = new Registry<>(Event.class, EventMetadata.class, EventMetadata::type);
+        registry = new Registry<>(Event.class, EventMetadata.class, EventMetadata::type)
+                .registerAll(CoreEvents.types());
     }
 
     @Nested

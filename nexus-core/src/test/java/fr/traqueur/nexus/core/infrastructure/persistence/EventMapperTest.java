@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.traqueur.nexus.core.application.mapper.EventMapper;
 import fr.traqueur.nexus.core.application.registry.Registry;
 import fr.traqueur.nexus.core.domain.events.Context;
+import fr.traqueur.nexus.core.domain.events.CoreEvents;
 import fr.traqueur.nexus.core.domain.events.Event;
 import fr.traqueur.nexus.core.domain.events.EventMetadata;
 import fr.traqueur.nexus.core.domain.events.discord.DiscordContext;
@@ -29,7 +30,8 @@ class EventMapperTest {
 
     @BeforeEach
     void setUp() {
-        Registry<Event, EventMetadata> registry = new Registry<>(Event.class, EventMetadata.class, EventMetadata::type);
+        Registry<Event, EventMetadata> registry = new Registry<>(Event.class, EventMetadata.class, EventMetadata::type)
+                .registerAll(CoreEvents.types());
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.addMixIn(Context.class, ContextMixin.class);
         objectMapper.findAndRegisterModules(); // For Instant support

@@ -1,15 +1,13 @@
 package fr.traqueur.nexus.core.domain.workflow;
 
-import fr.traqueur.nexus.core.application.logging.NexusLogger;
 import fr.traqueur.nexus.core.domain.events.Event;
-import fr.traqueur.nexus.core.domain.workflow.conditions.*;
 import fr.traqueur.nexus.core.domain.workflow.exceptions.ConditionEvaluationException;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.RecordComponent;
 import java.util.Optional;
 
-public sealed interface Condition permits AlwaysCondition, CompositeCondition, ContainsCondition, EqualsCondition, GroupCondition {
+public interface Condition {
 
     enum Operator {
         AND,
