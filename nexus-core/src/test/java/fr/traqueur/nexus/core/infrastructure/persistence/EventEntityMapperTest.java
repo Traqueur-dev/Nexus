@@ -1,9 +1,12 @@
 package fr.traqueur.nexus.core.infrastructure.persistence;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.jsontype.NamedType;
 import fr.traqueur.nexus.core.application.events.EventFactory;
 import fr.traqueur.nexus.core.application.registry.Registry;
 import fr.traqueur.nexus.core.domain.events.Context;
+import fr.traqueur.nexus.core.domain.events.ContextMetadata;
+import fr.traqueur.nexus.core.domain.events.CoreContexts;
 import fr.traqueur.nexus.core.domain.events.CoreEvents;
 import fr.traqueur.nexus.core.domain.events.Event;
 import fr.traqueur.nexus.core.domain.events.EventMetadata;
@@ -34,6 +37,8 @@ class EventEntityMapperTest {
                 .registerAll(CoreEvents.types());
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.addMixIn(Context.class, ContextMixin.class);
+        CoreContexts.types().forEach(type -> objectMapper.registerSubtypes(
+                new NamedType(type, type.getAnnotation(ContextMetadata.class).type())));
         objectMapper.findAndRegisterModules(); // For Instant support
         mapper = new EventEntityMapper(new EventFactory(registry), objectMapper);
     }

@@ -1,6 +1,9 @@
 package fr.traqueur.nexus.core.infrastructure.config;
 
 import fr.traqueur.nexus.core.application.registry.Registry;
+import fr.traqueur.nexus.core.domain.events.Context;
+import fr.traqueur.nexus.core.domain.events.ContextMetadata;
+import fr.traqueur.nexus.core.domain.events.CoreContexts;
 import fr.traqueur.nexus.core.domain.events.CoreEvents;
 import fr.traqueur.nexus.core.domain.events.Event;
 import fr.traqueur.nexus.core.domain.events.EventMetadata;
@@ -17,6 +20,12 @@ public class RegistriesConfig {
     public Registry<Event, EventMetadata> eventRegistry() {
         return new Registry<>(Event.class, EventMetadata.class, EventMetadata::type)
                 .registerAll(CoreEvents.types());
+    }
+
+    @Bean
+    public Registry<Context, ContextMetadata> contextRegistry() {
+        return new Registry<>(Context.class, ContextMetadata.class, ContextMetadata::type)
+                .registerAll(CoreContexts.types());
     }
 
     @Bean
