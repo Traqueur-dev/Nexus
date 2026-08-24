@@ -51,8 +51,8 @@ class EventControllerTest {
         @DisplayName("should return 200 with event when found")
         void shouldReturn200WithEvent() throws Exception {
             // Given
-            String eventId = "discord-abc123";
-            Event.Id id = new Event.Id("discord", "abc123");
+            Event.Id id = Event.Id.generate("discord");
+            String eventId = id.toString();
             DiscordMessageReceived event = new DiscordMessageReceived(
                     id,
                     new DiscordContext(),
@@ -62,7 +62,7 @@ class EventControllerTest {
             );
 
             EventResponseDto responseDto = new EventResponseDto(
-                    "discord-abc123",
+                    eventId,
                     "discord",
                     "discord.message_received",
                     Instant.parse("2026-01-04T10:00:00Z"),
@@ -76,7 +76,7 @@ class EventControllerTest {
             // When & Then
             mockMvc.perform(get("/api/v1/events/{id}", eventId))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.id").value("discord-abc123"))
+                    .andExpect(jsonPath("$.id").value(eventId))
                     .andExpect(jsonPath("$.source").value("discord"))
                     .andExpect(jsonPath("$.type").value("discord.message_received"))
                     // An object, not an escaped string: jsonPath resolves through it
@@ -90,8 +90,9 @@ class EventControllerTest {
         @DisplayName("should return 404 when event not found")
         void shouldReturn404WhenNotFound() throws Exception {
             // Given
-            String eventId = "unknown-abc123";
-            when(events.findById(new Event.Id("unknown", "abc123"))).thenReturn(Optional.empty());
+            Event.Id missing = Event.Id.generate("unknown");
+            String eventId = missing.toString();
+            when(events.findById(missing)).thenReturn(Optional.empty());
 
             // When & Then
             mockMvc.perform(get("/api/v1/events/{id}", eventId))

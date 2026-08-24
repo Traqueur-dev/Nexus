@@ -44,7 +44,7 @@ class ApplicationConfigTest {
             .withBean(WorkflowRepository.class, () -> type -> List.of());
 
     private static final Event EVENT = new DiscordMessageReceived(
-            new Event.Id("discord", "abc123"), new DiscordContext(),
+            Event.Id.generate("discord"), new DiscordContext(),
             java.time.Instant.parse("2026-01-04T10:00:00Z"), "hello", 1L);
 
     static class StubEventRepository implements EventRepository {
