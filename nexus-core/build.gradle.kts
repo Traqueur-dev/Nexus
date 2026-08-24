@@ -1,63 +1,35 @@
 import org.springframework.boot.gradle.tasks.run.BootRun
 
 plugins {
-    java
-    id("org.springframework.boot") version "4.0.1"
-    id("io.spring.dependency-management") version "1.1.7"
+    id("nexus.spring-conventions")
+    alias(libs.plugins.spring.boot)
 }
 
-group = rootProject.group
 version = rootProject.version
 description = "Event hub for developers"
 
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(25)
-    }
-}
-
-repositories {
-    mavenCentral()
-}
-
 dependencies {
-    implementation("org.springframework.boot:spring-boot-starter-web")
-    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
-    implementation("org.springframework.boot:spring-boot-starter-flyway")
-    implementation("org.springframework.boot:spring-boot-starter-amqp")
-    implementation("org.springframework.boot:spring-boot-starter-mail")
-    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
+    implementation(libs.spring.boot.starter.web)
+    implementation(libs.spring.boot.starter.data.jpa)
+    implementation(libs.spring.boot.starter.flyway)
+    implementation(libs.spring.boot.starter.amqp)
+    implementation(libs.spring.boot.starter.mail)
+    implementation(libs.jackson.datatype.jsr310)
 
-    runtimeOnly("org.flywaydb:flyway-database-postgresql")
-    runtimeOnly("org.postgresql:postgresql:42.7.8")
+    runtimeOnly(libs.flyway.database.postgresql)
+    runtimeOnly(libs.postgresql)
 
-    testImplementation("org.testcontainers:junit-jupiter:1.21.4")
-    testImplementation("org.testcontainers:postgresql:1.21.4")
-    testImplementation("org.testcontainers:rabbitmq:1.20.4")
-    testImplementation("org.awaitility:awaitility:4.2.0")
-    testImplementation("org.springframework.boot:spring-boot-testcontainers")
-    testImplementation("org.springframework.boot:spring-boot-starter-test")
-    testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
-    testImplementation("org.springframework.boot:spring-boot-starter-webflux")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    testImplementation(libs.spring.boot.starter.test)
+    testImplementation(libs.spring.boot.starter.webmvc.test)
+    testImplementation(libs.spring.boot.starter.webflux)
+    testImplementation(libs.spring.boot.testcontainers)
+    testImplementation(libs.testcontainers.junit.jupiter)
+    testImplementation(libs.testcontainers.postgresql)
+    testImplementation(libs.testcontainers.rabbitmq)
+    testImplementation(libs.awaitility)
+    testRuntimeOnly(libs.junit.platform.launcher)
 }
 
 tasks.named<BootRun>("bootRun") {
     args("--spring.profiles.active=dev")
-}
-
-tasks.withType<Test> {
-    useJUnitPlatform()
-    testLogging {
-        events("started", "passed", "skipped", "failed", "standardOut", "standardError")
-        showExceptions = true
-        showCauses = true
-        showStackTraces = true
-        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
-        showStandardStreams = true
-    }
-}
-
-tasks.withType<Test> {
-    useJUnitPlatform()
 }

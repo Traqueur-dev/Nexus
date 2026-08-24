@@ -162,9 +162,17 @@ Testcontainers.
 
 ## Known pitfalls
 
-- **Gradle multi-module + Spring Boot**: apply the `org.springframework.boot`
-  plugin with `apply false` at the root. Only `nexus-bootstrap` may produce a
-  boot jar — a module that builds one cannot be consumed as a dependency.
+- **Gradle multi-module + Spring Boot**: the `org.springframework.boot` plugin is
+  declared `apply false` at the root and applied only by the module producing the
+  runnable application. A module that builds a boot jar cannot be consumed as a
+  dependency by another.
+- **The application's `main` must be `public`.** Java 25 lets the JVM launch a
+  non-public one (JEP 512), so `bootRun` and the IDE work either way — but Spring
+  Boot resolves the main class by scanning for a `public static main`, and
+  `bootJar` fails without it. Test with `java -jar`, not only `bootRun`.
+- **Build configuration lives in `build-logic/`**, applied as
+  `nexus.java-conventions` / `nexus.spring-conventions`. Dependency versions live
+  in `gradle/libs.versions.toml`. Neither belongs in a module's build file.
 - **`Event.Id` collisions**: 6 base-36 characters is roughly 2.2 billion values,
   so collisions become likely well before a million events per source. Saving
   through `JpaRepository.save()` on an existing id issues an `UPDATE`, silently
