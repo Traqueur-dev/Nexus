@@ -1,7 +1,5 @@
 package fr.traqueur.nexus.core.application.ports.in;
 
-import fr.traqueur.nexus.core.domain.events.Event;
-
 /**
  * Inbound port: hand Nexus an event that happened somewhere.
  *
@@ -11,9 +9,10 @@ import fr.traqueur.nexus.core.domain.events.Event;
 public interface IngestEvent {
 
     /**
-     * Assigns an identifier, builds the event and stores it.
+     * Assigns an identifier, builds the event, stores it, then runs the workflows
+     * that react to it.
      *
-     * @return the stored event, so callers can log or return its identifier
+     * @return the stored event and what its workflows did
      */
-    Event ingest(IngestEventCommand command);
+    IngestionResult ingest(IngestEventCommand command);
 }

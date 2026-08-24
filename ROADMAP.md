@@ -30,8 +30,8 @@
 - [X] Event model (records, annotation-based type registry)
 - [X] Condition model (`equals`, `contains`, `composite`, `group`, `always`)
 - [X] Action model — descriptive only, no execution yet
-- [ ] Workflow behaviour (`matches()`, invariants) — currently an anemic record
-- [ ] Workflow execution engine
+- [X] Workflow behaviour (`matches()`, invariants)
+- [X] Workflow execution engine (behind the `ActionHandler` port)
 
 ### Infrastructure
 - [X] PostgreSQL + Flyway
@@ -52,9 +52,9 @@
 Prerequisite for Phase 2: the current design cannot host third-party adapters.
 See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
-- [ ] Open the domain type hierarchies (remove `sealed`)
-- [ ] Introduce ports and adapters
-- [ ] Workflow engine behind an `ActionHandler` port
+- [X] Open the domain type hierarchies (remove `sealed`)
+- [X] Introduce ports and adapters
+- [X] Workflow engine behind an `ActionHandler` port
 - [ ] Build foundation: version catalog + convention plugins
 - [ ] Split into Gradle modules (domain / application / api / infrastructure /
       plugin-loader / bootstrap)

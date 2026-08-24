@@ -3,6 +3,8 @@ package fr.traqueur.nexus.core.infrastructure.messaging;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.traqueur.nexus.core.application.ports.in.IngestEvent;
 import fr.traqueur.nexus.core.application.ports.in.IngestEventCommand;
+import fr.traqueur.nexus.core.application.ports.in.IngestionResult;
+import fr.traqueur.nexus.core.application.workflow.WorkflowRun;
 import fr.traqueur.nexus.core.domain.events.Context;
 import fr.traqueur.nexus.core.domain.events.Event;
 import fr.traqueur.nexus.core.infrastructure.logging.NexusLogger;
@@ -29,10 +31,27 @@ public class EventConsumer {
             EventMessage received = json.readValue(message, EventMessage.class);
             logger.eventReceived(received.source(), received.type());
 
-            Event event = ingestEvent.ingest(toCommand(received));
-            logger.eventSaved(event.id().toString());
+            IngestionResult result = ingestEvent.ingest(toCommand(received));
+            logger.eventSaved(result.event().id().toString());
+            reportFailedWorkflows(result);
         } catch (Exception e) {
             logger.error("Error while processing event", e);
+        }
+    }
+
+    /**
+     * A workflow that failed must not fail the ingestion — the event is already
+     * stored — but it must not disappear either.
+     */
+    private void reportFailedWorkflows(IngestionResult result) {
+        for (WorkflowRun run : result.failedRuns()) {
+            if (!run.fired()) {
+                logger.warn("[WORKFLOW] {} could not be evaluated: {}", run.workflowId(), run.evaluationError());
+                continue;
+            }
+            run.failures().forEach(outcome -> logger.warn(
+                    "[WORKFLOW] {} action {} failed: {}",
+                    run.workflowId(), outcome.action().getClass().getSimpleName(), outcome.failure()));
         }
     }
 

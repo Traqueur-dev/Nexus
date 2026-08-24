@@ -5,6 +5,10 @@ import fr.traqueur.nexus.core.application.ports.in.IngestEventCommand;
 import fr.traqueur.nexus.core.application.ports.out.EventRepository;
 import fr.traqueur.nexus.core.application.registry.Registry;
 import fr.traqueur.nexus.core.application.registry.UnknownTypeException;
+import fr.traqueur.nexus.core.application.ports.out.WorkflowRepository;
+import fr.traqueur.nexus.core.application.workflow.ActionDispatcher;
+import fr.traqueur.nexus.core.application.workflow.WorkflowEngine;
+import fr.traqueur.nexus.core.domain.events.EventType;
 import fr.traqueur.nexus.core.domain.events.CoreEvents;
 import fr.traqueur.nexus.core.domain.events.EventMetadata;
 import fr.traqueur.nexus.core.domain.events.Event;
@@ -19,6 +23,7 @@ import org.junit.jupiter.api.Test;
 import java.time.Instant;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -72,7 +77,9 @@ class EventServiceTest {
         Registry<Event, EventMetadata> registry =
                 new Registry<>(Event.class, EventMetadata.class, EventMetadata::type)
                         .registerAll(CoreEvents.types());
-        service = new EventService(repository, new EventFactory(registry));
+        WorkflowRepository noWorkflows = (EventType type) -> List.of();
+        service = new EventService(repository, new EventFactory(registry),
+                new WorkflowEngine(noWorkflows, new ActionDispatcher(List.of())));
     }
 
     private static DiscordMessageReceived discordEvent(String instance, Instant at, String content) {
@@ -142,7 +149,7 @@ class EventServiceTest {
                 new DiscordContext(),
                 Map.of("content", "ingested", "authorId", 7L));
 
-        Event ingested = service.ingest(command);
+        Event ingested = service.ingest(command).event();
 
         assertThat(ingested).isInstanceOf(DiscordMessageReceived.class);
         assertThat(ingested.id().prefix()).isEqualTo("discord");
@@ -161,8 +168,8 @@ class EventServiceTest {
                 new DiscordContext(),
                 Map.of("content", "same payload", "authorId", 7L));
 
-        Event first = service.ingest(command);
-        Event second = service.ingest(command);
+        Event first = service.ingest(command).event();
+        Event second = service.ingest(command).event();
 
         assertThat(first.id()).isNotEqualTo(second.id());
         assertThat(repository.size()).isEqualTo(2);
