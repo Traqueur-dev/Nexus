@@ -9,6 +9,11 @@
 - PostgreSQL / Redis / RabbitMQ
 - Docker / Kubernetes
 
+## Documentation
+
+- [Developer guide](CLAUDE.md) — setup, commands, conventions
+- [Architecture](docs/ARCHITECTURE.md) — hexagonal design, decisions, migration plan
+
 ## Status
 
 See [ROADMAP.md](ROADMAP.md) for progress.
