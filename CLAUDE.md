@@ -51,6 +51,9 @@ docker compose up -d
 
 # A single test class
 ./gradlew test --tests '*ConditionSerializationTest'
+
+# One module
+./gradlew :nexus-domain:test
 ```
 
 `bootRun` is preconfigured with `--spring.profiles.active=dev`, which points the
@@ -61,19 +64,23 @@ app at the services declared in `compose.yml` (all credentials are `nexus`
 
 ## Module layout
 
-The codebase is being restructured into a hexagonal architecture. Target layout:
-
 ```
 nexus-domain          Pure Java. Zero dependencies. Also the public plugin SDK.
 nexus-application     Use cases + port interfaces (in and out).
 nexus-api             Driving adapters: REST controllers, WebSocket.
-nexus-infrastructure  Driven adapters: JPA, RabbitMQ, Redis, serialization.
-nexus-plugin-loader   Discovery and lifecycle of external adapters.
+nexus-infrastructure  Driven adapters: JPA, RabbitMQ, mail, serialization.
+nexus-plugin-loader   Discovery and lifecycle of external adapters (empty).
 nexus-bootstrap       @SpringBootApplication, wiring, produces the runnable jar.
 ```
 
-Until the split lands, the same separation exists as packages under
-`nexus-core/src/main/java/fr/traqueur/nexus/core/`.
+Packages mirror the modules: `fr.traqueur.nexus.<layer>`. The dependency rules
+below are enforced by the module graph — a violation fails the build, it is not
+a review comment. `./gradlew :nexus-domain:dependencies` prints
+`No dependencies`, which is the contract in one line.
+
+Tests live with the module they exercise. Anything that needs a Spring context
+or Testcontainers lives in `nexus-bootstrap`, because exercising the assembly is
+what that module is for.
 
 ---
 

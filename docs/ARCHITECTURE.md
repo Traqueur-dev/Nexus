@@ -279,39 +279,31 @@ descriptive, which matters because it doubles as the public plugin SDK.
 
 ## 8. Current state
 
-Measured over `nexus-core/src/main/java`, after steps 1 to 3 of the migration:
+The split has landed. The rules are no longer conventions checked by review —
+they are the module graph, and a violation fails the build.
 
 ```
-application    → domain          :  8
-infrastructure → domain          : 19
-infrastructure → application     :  7
-interfaces     → domain          :  2
-interfaces     → application     :  2
+$ ./gradlew :nexus-domain:dependencies --configuration compileClasspath
+compileClasspath - Compile classpath for source set 'main'.
+No dependencies
+
+$ ./gradlew :nexus-application:dependencies --configuration compileClasspath
+compileClasspath - Compile classpath for source set 'main'.
+\--- project :nexus-domain
 ```
 
-**No inward violations.** Every arrow points inward, no adapter depends on
-another, and `domain` imports nothing from Spring, Jakarta or Jackson.
+No adapter sees another. Only `nexus-bootstrap` applies the Spring Boot plugin
+and produces a boot jar; every other module builds an ordinary consumable jar.
 
-Started at seven violations:
+Two things the split surfaced that a single module had hidden:
 
-| Was | Now |
-|---|---|
-| `domain` → `application` (`NexusLogger`) | logger moved to infrastructure; unused import removed |
-| `application` → `infrastructure` (`EventEntity`, `EventEntityRepository`) | behind the `EventRepository` port |
-| `application` → `interfaces` (both REST DTOs) | `EventMapper` split by layer |
-| `infrastructure` → `interfaces` (`EventRequestDto`) | ingestion contract moved to `IngestEventCommand` |
-
-The former `EventMapper` became three pieces, each where it belongs:
-
-- `application/events/EventFactory` — builds and decomposes events, needs only
-  the `Registry`
-- `infrastructure/persistence/EventEntityMapper` — entity translation and the
-  JSON encoding of the jsonb columns
-- `interfaces/rest/EventDtoMapper` — the REST representation
-
-This is enforced by convention only. The Gradle split (step 6) hands it to the
-compiler, and ArchUnit (step 7) guards the rules a module boundary cannot
-express.
+- **`nexus-api` depends on Jackson only because of the double encoding** in
+  `EventDtoMapper` (#32). Typing `EventResponseDto.context` as `Context` removes
+  the dependency outright.
+- **The codebase is on Jackson 2 while Spring Boot 4 ships Jackson 3**
+  (`tools.jackson.*`). It compiled because `jackson-datatype-jsr310` pulled
+  Jackson 2 in transitively. The dependency is now declared explicitly; the
+  mismatch itself is tracked separately.
 
 ## 9. Migration order
 
@@ -327,7 +319,11 @@ architecture.
 | 4 | Workflow engine: `Workflow.matches()`, `ActionHandler` (ADR-002) | First feature validating the design |
 | 5 | Build foundation: version catalog, convention plugins | Prerequisite for a sane multi-module build |
 | 6 | Split into Gradle modules | Now only locks in what is already correct |
-| 7 | ArchUnit rules | Prevents regression permanently |
+| 7 | ArchUnit rules | Guards what a module boundary cannot express |
+
+Steps 1 to 6 are done. Step 7 remains: module boundaries catch dependencies
+*between* modules, but not annotations leaking into the domain or layering
+inside a module.
 
 Steps 1–4 keep a single module and a green build throughout, so each is
 independently reviewable and revertable.

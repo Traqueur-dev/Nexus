@@ -4,6 +4,8 @@ springBoot = "4.0.1"
 springDependencyManagement = "1.1.7"
 postgresql = "42.7.8"
 testcontainers = "1.21.4"
+junit = "5.11.4"
+assertj = "3.26.3"
 awaitility = "4.2.0"
 
 [libraries]
@@ -21,9 +23,20 @@ spring-boot-starter-flyway = { module = "org.springframework.boot:spring-boot-st
 spring-boot-starter-amqp = { module = "org.springframework.boot:spring-boot-starter-amqp" }
 spring-boot-starter-mail = { module = "org.springframework.boot:spring-boot-starter-mail" }
 jackson-datatype-jsr310 = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jsr310" }
+# Jackson 2. Spring Boot 4 ships Jackson 3 (tools.jackson.*) for its own message
+# converters; the codebase is written against Jackson 2 (com.fasterxml.jackson.*)
+# and used to get it transitively through jackson-datatype-jsr310. Declared
+# explicitly so the dependency is a decision rather than an accident.
+jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind" }
 
 flyway-database-postgresql = { module = "org.flywaydb:flyway-database-postgresql" }
 postgresql = { module = "org.postgresql:postgresql", version.ref = "postgresql" }
+
+# Test essentials, applied by nexus.java-conventions. Versions are explicit
+# rather than BOM-managed so nexus-domain needs no Spring plugin at all.
+junit-bom = { module = "org.junit:junit-bom", version.ref = "junit" }
+junit-jupiter = { module = "org.junit.jupiter:junit-jupiter" }
+assertj-core = { module = "org.assertj:assertj-core", version.ref = "assertj" }
 
 spring-boot-starter-test = { module = "org.springframework.boot:spring-boot-starter-test" }
 spring-boot-starter-webmvc-test = { module = "org.springframework.boot:spring-boot-starter-webmvc-test" }
