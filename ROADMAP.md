@@ -11,8 +11,8 @@
 ## Phase 0: Project Setup ✅
 
 ### Repository
-- [X] Gradle multi-module setup
-- [X] `nexus-core` module
+- [X] Gradle multi-module setup — version catalog and convention plugins in
+      `build-logic/`
 - [X] GitHub Actions CI
 
 ### First Code
@@ -36,7 +36,10 @@
 ### Infrastructure
 - [X] PostgreSQL + Flyway
 - [X] RabbitMQ integration
-- [X] Polymorphic JSON serialization (events, conditions)
+- [X] Polymorphic JSON serialization — one registry-driven mechanism for
+      contexts, conditions and actions (ADR-009)
+- [ ] Workflow persistence — the port exists and is answered by an in-memory
+      adapter; nothing survives a restart yet
 - [ ] Redis cache — container provisioned, not wired
 
 ### API
@@ -47,18 +50,20 @@
 
 ---
 
-## Phase 1.5: Architecture Refactor 🔄
+## Phase 1.5: Architecture Refactor ✅
 
-Prerequisite for Phase 2: the current design cannot host third-party adapters.
-See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+Prerequisite for Phase 2: the previous design could not host third-party
+adapters. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 - [X] Open the domain type hierarchies (remove `sealed`)
 - [X] Introduce ports and adapters
 - [X] Workflow engine behind an `ActionHandler` port
-- [ ] Build foundation: version catalog + convention plugins
-- [ ] Split into Gradle modules (domain / application / api / infrastructure /
-      plugin-loader / bootstrap)
-- [ ] ArchUnit rules to prevent regression
+- [X] Build foundation: version catalog + convention plugins
+- [X] Split into Gradle modules (domain / application / infrastructure /
+      plugin-loader / bootstrap) — driving adapters live in `infrastructure`,
+      there is no `api` module (ADR-007)
+- [X] ArchUnit rules to prevent regression — layering, adapter isolation, and
+      open hierarchies (ADR-006, ADR-009)
 
 ---
 
