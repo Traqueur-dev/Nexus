@@ -4,6 +4,8 @@ import fr.traqueur.nexus.application.registry.Registries;
 import fr.traqueur.nexus.application.registry.Registry;
 import fr.traqueur.nexus.domain.events.Context;
 import fr.traqueur.nexus.domain.events.ContextMetadata;
+import fr.traqueur.nexus.domain.workflow.Action;
+import fr.traqueur.nexus.domain.workflow.ActionMetadata;
 import fr.traqueur.nexus.domain.workflow.Condition;
 import fr.traqueur.nexus.domain.workflow.ConditionMetadata;
 import fr.traqueur.nexus.infrastructure.serialization.NexusJsonCustomizer;
@@ -17,6 +19,10 @@ import tools.jackson.databind.json.JsonMapper;
  * equivalents drift: earlier versions used {@code findAndRegisterModules()} and
  * registered no condition serializer, so they asserted round-trips through a
  * mapper the application never builds.
+ *
+ * <p>The overloads take the registries rather than building them, so a test can
+ * keep a reference and register a type <em>after</em> the mapper exists — which is
+ * the property {@code RegistryBackedSerialization} was written for.
  *
  * <p>What this cannot cover is the other half of the same question — whether the
  * customizer actually reaches the mapper the application injects. Only a Spring
@@ -37,8 +43,14 @@ public final class TestJson {
 
     public static ObjectMapper mapper(Registry<Condition, ConditionMetadata> conditions,
                                       Registry<Context, ContextMetadata> contexts) {
+        return mapper(conditions, contexts, Registries.actions());
+    }
+
+    public static ObjectMapper mapper(Registry<Condition, ConditionMetadata> conditions,
+                                      Registry<Context, ContextMetadata> contexts,
+                                      Registry<Action, ActionMetadata> actions) {
         JsonMapper.Builder builder = JsonMapper.builder();
-        new NexusJsonCustomizer(conditions, contexts).customize(builder);
+        new NexusJsonCustomizer(conditions, contexts, actions).customize(builder);
         return builder.build();
     }
 }

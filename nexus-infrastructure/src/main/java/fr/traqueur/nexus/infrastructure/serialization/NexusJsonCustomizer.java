@@ -3,17 +3,16 @@ package fr.traqueur.nexus.infrastructure.serialization;
 import fr.traqueur.nexus.application.registry.Registry;
 import fr.traqueur.nexus.domain.events.Context;
 import fr.traqueur.nexus.domain.events.ContextMetadata;
+import fr.traqueur.nexus.domain.workflow.Action;
+import fr.traqueur.nexus.domain.workflow.ActionMetadata;
 import fr.traqueur.nexus.domain.workflow.Condition;
 import fr.traqueur.nexus.domain.workflow.ConditionMetadata;
 import org.springframework.boot.jackson.autoconfigure.JsonMapperBuilderCustomizer;
 import tools.jackson.databind.json.JsonMapper;
-import tools.jackson.databind.jsontype.NamedType;
 import tools.jackson.databind.module.SimpleModule;
 
-import java.util.List;
-
 /**
- * Everything Nexus adds to the JSON mapper: polymorphic contexts and conditions.
+ * Everything Nexus adds to the JSON mapper: one registry-backed hierarchy per line.
  *
  * <p>This customizes the mapper Spring Boot builds rather than declaring a second
  * one. Declaring a {@code @Bean ObjectMapper} does not replace the auto-configured
@@ -29,40 +28,35 @@ import java.util.List;
  */
 public class NexusJsonCustomizer implements JsonMapperBuilderCustomizer {
 
+    /**
+     * The discriminator each hierarchy is written under. Both are persisted
+     * contracts — {@code source} names a context in the {@code events.context}
+     * column and in every queued message, {@code type} names a condition or an
+     * action inside a stored workflow. Renaming one breaks the rows already
+     * written.
+     */
+    private static final String SOURCE = "source";
+    private static final String TYPE = "type";
+
     private final Registry<Condition, ConditionMetadata> conditions;
     private final Registry<Context, ContextMetadata> contexts;
+    private final Registry<Action, ActionMetadata> actions;
 
     public NexusJsonCustomizer(Registry<Condition, ConditionMetadata> conditions,
-                               Registry<Context, ContextMetadata> contexts) {
+                               Registry<Context, ContextMetadata> contexts,
+                               Registry<Action, ActionMetadata> actions) {
         this.conditions = conditions;
         this.contexts = contexts;
+        this.actions = actions;
     }
 
     @Override
     public void customize(JsonMapper.Builder builder) {
         SimpleModule module = new SimpleModule();
-        module.addDeserializer(Condition.class, new ConditionSerialization.Deserializer(conditions));
-        module.addSerializer(Condition.class, new ConditionSerialization.Serializer(conditions));
+        RegistryBackedSerialization.register(module, Context.class, contexts, SOURCE);
+        RegistryBackedSerialization.register(module, Condition.class, conditions, TYPE);
+        RegistryBackedSerialization.register(module, Action.class, actions, TYPE);
 
-        builder.addMixIn(Context.class, ContextMixin.class)
-                .registerSubtypes(contextSubtypes())
-                .addModule(module);
-    }
-
-    /**
-     * Every context type the registry knows about.
-     *
-     * <p>Resolved from the registry rather than a hardcoded {@code @JsonSubTypes}
-     * list, so an adapter's context type is deserializable once registered.
-     *
-     * <p>Current limit: this is read when the mapper is built. A plugin loaded
-     * after startup needs its subtypes registered on the live mapper too — see
-     * the plugin loader work in Phase 2.
-     */
-    private NamedType[] contextSubtypes() {
-        List<NamedType> subtypes = contexts.registeredClasses().stream()
-                .map(type -> new NamedType(type, contexts.requireTypeForClass(type)))
-                .toList();
-        return subtypes.toArray(NamedType[]::new);
+        builder.addModule(module);
     }
 }

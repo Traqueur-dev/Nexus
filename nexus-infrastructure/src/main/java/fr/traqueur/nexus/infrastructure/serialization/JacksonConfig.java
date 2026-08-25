@@ -3,6 +3,8 @@ package fr.traqueur.nexus.infrastructure.serialization;
 import fr.traqueur.nexus.application.registry.Registry;
 import fr.traqueur.nexus.domain.events.Context;
 import fr.traqueur.nexus.domain.events.ContextMetadata;
+import fr.traqueur.nexus.domain.workflow.Action;
+import fr.traqueur.nexus.domain.workflow.ActionMetadata;
 import fr.traqueur.nexus.domain.workflow.Condition;
 import fr.traqueur.nexus.domain.workflow.ConditionMetadata;
 import org.springframework.context.annotation.Bean;
@@ -19,7 +21,8 @@ public class JacksonConfig {
      */
     @Bean
     public NexusJsonCustomizer nexusJsonCustomizer(Registry<Condition, ConditionMetadata> conditions,
-                                                   Registry<Context, ContextMetadata> contexts) {
-        return new NexusJsonCustomizer(conditions, contexts);
+                                                   Registry<Context, ContextMetadata> contexts,
+                                                   Registry<Action, ActionMetadata> actions) {
+        return new NexusJsonCustomizer(conditions, contexts, actions);
     }
 }
