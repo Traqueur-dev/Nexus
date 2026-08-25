@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * JPA adapter for {@link WorkflowRepository}, replacing the in-memory one that
@@ -39,6 +40,24 @@ public class JpaWorkflowRepository implements WorkflowRepository {
     @Transactional
     public void save(Workflow workflow) {
         entities.save(mapper.toEntity(workflow));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<Workflow> findById(String id) {
+        return entities.findById(id).map(mapper::toDomain);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Workflow> findAll() {
+        return entities.findAll().stream().map(mapper::toDomain).toList();
+    }
+
+    @Override
+    @Transactional
+    public boolean deleteById(String id) {
+        return entities.deleteWorkflowById(id) > 0;
     }
 
     /**
