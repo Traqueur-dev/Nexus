@@ -1,6 +1,7 @@
 package fr.traqueur.nexus.application.workflow;
 
 import fr.traqueur.nexus.application.ports.out.ActionHandler;
+import fr.traqueur.nexus.application.ports.out.InMemoryWorkflowRepository;
 import fr.traqueur.nexus.application.ports.out.WorkflowRepository;
 import fr.traqueur.nexus.domain.events.Event;
 import fr.traqueur.nexus.domain.events.EventType;
@@ -76,8 +77,7 @@ class WorkflowEngineTest {
     }
 
     private static WorkflowRepository containing(Workflow... workflows) {
-        List<Workflow> all = List.of(workflows);
-        return type -> all.stream().filter(workflow -> workflow.triggersOn(type)).toList();
+        return new InMemoryWorkflowRepository(workflows);
     }
 
     @Nested
