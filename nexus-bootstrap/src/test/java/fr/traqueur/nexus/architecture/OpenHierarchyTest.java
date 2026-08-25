@@ -58,6 +58,15 @@ class OpenHierarchyTest {
         metadataRule(Action.class, ActionMetadata.class).check(NexusClasses.get());
     }
 
+    @Test
+    @DisplayName("every open-hierarchy type should be a record")
+    void typesShouldBeRecords() {
+        recordRule(Event.class).check(NexusClasses.get());
+        recordRule(Context.class).check(NexusClasses.get());
+        recordRule(Condition.class).check(NexusClasses.get());
+        recordRule(Action.class).check(NexusClasses.get());
+    }
+
     /** A context type as a forgetful contributor would write it. */
     private record UndeclaredContext(String value) implements Context {
     }
@@ -74,6 +83,28 @@ class OpenHierarchyTest {
                 .isInstanceOf(AssertionError.class)
                 .hasMessageContaining("UndeclaredContext")
                 .hasMessageContaining("persisted contract");
+    }
+
+    /** A context type written as a class with getters, the way a POJO habit produces. */
+    @ContextMetadata(type = "not-a-record")
+    private static class ClassBasedContext implements Context {
+
+        public String getValue() {
+            return "";
+        }
+    }
+
+    @Test
+    @DisplayName("should reject a type that is not a record")
+    void shouldRejectANonRecordType() {
+        // Same reasoning as above: this type is annotated, so it satisfies the
+        // metadata rule and would sail through registration. It fails only here.
+        JavaClasses offender = new ClassFileImporter().importClasses(ClassBasedContext.class);
+
+        assertThatThrownBy(() -> recordRule(Context.class).check(offender))
+                .isInstanceOf(AssertionError.class)
+                .hasMessageContaining("ClassBasedContext")
+                .hasMessageContaining("record components");
     }
 
     /**
@@ -93,5 +124,28 @@ class OpenHierarchyTest {
                         + "nothing says so until an event is ingested at runtime. The class "
                         + "name is not an option — renaming or moving the class would break "
                         + "every row already written");
+    }
+
+    /**
+     * Same selection as {@link #metadataRule}: concrete implementations only.
+     *
+     * <p>Being a record is not a style preference here, it is what two mechanisms
+     * already assume. {@code EventFactory} rebuilds an event from its record
+     * components, and {@code RegistryBackedSerialization} writes a value by walking
+     * them — it cannot delegate to the mapper without re-entering itself. A
+     * non-record type compiles, registers, and then fails on the first write.
+     */
+    private ArchRule recordRule(Class<?> hierarchy) {
+        return classes().that().implement(hierarchy)
+                .and().areNotInterfaces()
+                .and().doNotHaveModifier(com.tngtech.archunit.core.domain.JavaModifier.ABSTRACT)
+                .should().beRecords()
+                .as("every " + hierarchy.getSimpleName() + " is a record")
+                .because("the type is rebuilt and written through its record components: "
+                        + "EventFactory reconstructs an event from them, and polymorphic "
+                        + "serialization walks them rather than delegating to the mapper, "
+                        + "which would recurse. A class with getters would be registered, "
+                        + "serialized to nothing but its type identifier, and only fail on "
+                        + "the read");
     }
 }

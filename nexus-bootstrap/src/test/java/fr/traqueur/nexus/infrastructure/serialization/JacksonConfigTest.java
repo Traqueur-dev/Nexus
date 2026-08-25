@@ -3,7 +3,9 @@ package fr.traqueur.nexus.infrastructure.serialization;
 import fr.traqueur.nexus.bootstrap.RegistriesConfig;
 import fr.traqueur.nexus.domain.events.Context;
 import fr.traqueur.nexus.domain.events.github.GitHubContext;
+import fr.traqueur.nexus.domain.workflow.Action;
 import fr.traqueur.nexus.domain.workflow.Condition;
+import fr.traqueur.nexus.domain.workflow.actions.SendEmailAction;
 import fr.traqueur.nexus.domain.workflow.conditions.EqualsCondition;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -70,6 +72,24 @@ class JacksonConfigTest {
             assertThat(encoded).contains("\"type\":\"equals\"");
             assertThat(json.readValue(encoded, Condition.class))
                     .isEqualTo(new EqualsCondition("content", "hello"));
+        });
+    }
+
+    @Test
+    @DisplayName("should round-trip an action through the injected mapper")
+    void shouldRoundTripAction() {
+        // Nothing serializes an action in production yet. Asserted here anyway
+        // because the wiring is the part that silently goes missing: a registry
+        // the customizer was never handed produces no error, only an action that
+        // cannot be written the day workflows are persisted.
+        runner.run(context -> {
+            ObjectMapper json = context.getBean(ObjectMapper.class);
+            Action action = new SendEmailAction("Subject", "Body", "dev@example.com");
+
+            String encoded = json.writeValueAsString(action);
+
+            assertThat(encoded).contains("\"type\":\"send_email\"");
+            assertThat(json.readValue(encoded, Action.class)).isEqualTo(action);
         });
     }
 }

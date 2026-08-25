@@ -1,22 +1,23 @@
 package fr.traqueur.nexus.infrastructure.serialization;
 
-import tools.jackson.databind.ObjectMapper;
-import fr.traqueur.nexus.infrastructure.TestJson;
 import fr.traqueur.nexus.application.registry.Registries;
+import fr.traqueur.nexus.application.registry.Registry;
 import fr.traqueur.nexus.domain.events.Context;
 import fr.traqueur.nexus.domain.events.ContextMetadata;
 import fr.traqueur.nexus.domain.events.discord.DiscordContext;
 import fr.traqueur.nexus.domain.events.github.GitHubContext;
+import fr.traqueur.nexus.infrastructure.TestJson;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.ObjectMapper;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
- * Covers polymorphic context serialization once the subtype list stopped being
- * hardcoded in {@code ContextMixin}.
+ * Covers polymorphic context serialization, now resolved through the registry at
+ * call time rather than through a subtype list frozen when the mapper was built.
  */
 @DisplayName("Context serialization")
 class ContextSerializationTest {
@@ -65,10 +66,34 @@ class ContextSerializationTest {
     }
 
     @Test
+    @DisplayName("should deserialize a context registered after the mapper was built")
+    void shouldResolveATypeRegisteredAfterTheMapperWasBuilt() throws Exception {
+        // The reason this mechanism replaced the mixin. Registering the subtypes
+        // from the registry still read them once, when the mapper was built — so a
+        // plugin loading at T+5min was in the registry and undeserializable, and
+        // the fix would have been to rebuild the mapper every bean already holds.
+        Registry<Context, ContextMetadata> contexts = Registries.contexts();
+        ObjectMapper mapper = TestJson.mapper(contexts);
+
+        contexts.register(MinecraftContext.class);
+
+        Context decoded = mapper.readValue("{\"source\":\"minecraft\",\"server\":\"survival\"}", Context.class);
+        assertThat(decoded).isEqualTo(new MinecraftContext("survival"));
+        assertThat(mapper.writeValueAsString(decoded)).contains("\"source\":\"minecraft\"");
+    }
+
+    @Test
     @DisplayName("should fail on a context type that was never registered")
     void shouldFailOnUnregisteredContext() {
         assertThatThrownBy(() -> json.readValue("{\"source\":\"minecraft\"}", Context.class))
-                .hasMessageContaining("minecraft");
+                .hasMessageContaining("Unknown context type: minecraft");
+    }
+
+    @Test
+    @DisplayName("should fail on a context payload carrying no discriminator")
+    void shouldFailOnMissingDiscriminator() {
+        assertThatThrownBy(() -> json.readValue("{\"server\":\"survival\"}", Context.class))
+                .hasMessageContaining("Context is missing its 'source' field");
     }
 
     @Test

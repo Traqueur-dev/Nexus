@@ -151,6 +151,13 @@ Every open hierarchy has all four pieces: an annotation, a `Registry` bean in
 identifiers used wherever the type crosses a boundary. A hierarchy missing any
 of them is incomplete — see ADR-006.
 
+Its types are **records**, and that is enforced, not conventional. `EventFactory`
+rebuilds an event from its record components, and `RegistryBackedSerialization`
+writes a value by walking them — it cannot delegate to the mapper without
+re-entering itself. A class with getters registers fine and then serializes to
+nothing but its type identifier, so `OpenHierarchyTest` rejects it at build time
+(ADR-009).
+
 ---
 
 ## Conventions
