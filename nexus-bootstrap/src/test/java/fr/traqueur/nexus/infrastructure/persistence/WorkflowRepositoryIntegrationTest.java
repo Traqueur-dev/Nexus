@@ -150,6 +150,45 @@ class WorkflowRepositoryIntegrationTest {
                 .hasSize(1);
     }
 
+    @Test
+    @DisplayName("should find a workflow by its id")
+    void shouldFindById() {
+        Workflow workflow = workflow(id("by-id"), List.of(GITHUB_PUSH));
+        workflows.save(workflow);
+
+        assertThat(workflows.findById(workflow.id())).contains(workflow);
+    }
+
+    @Test
+    @DisplayName("should return empty for an id nothing was stored under")
+    void shouldReturnEmptyForAnUnknownId() {
+        assertThat(workflows.findById(id("never-stored"))).isEmpty();
+    }
+
+    @Test
+    @DisplayName("should list every stored workflow")
+    void shouldFindAll() {
+        Workflow one = workflow(id("all-one"), List.of(GITHUB_PUSH));
+        Workflow two = workflow(id("all-two"), List.of(DISCORD_MESSAGE));
+        workflows.save(one);
+        workflows.save(two);
+
+        assertThat(workflows.findAll()).contains(one, two);
+    }
+
+    @Test
+    @DisplayName("should report whether a delete removed anything")
+    void shouldReportWhatDeleteRemoved() {
+        // The boolean is what lets the REST adapter answer 404 without reading
+        // before every delete.
+        Workflow workflow = workflow(id("removable"), List.of(GITHUB_PUSH));
+        workflows.save(workflow);
+
+        assertThat(workflows.deleteById(workflow.id())).isTrue();
+        assertThat(workflows.findById(workflow.id())).isEmpty();
+        assertThat(workflows.deleteById(workflow.id())).isFalse();
+    }
+
     /*
      * Each test writes into the same database, and none of them cares about the
      * others' rows. Unique ids keep them independent without a truncation hook,

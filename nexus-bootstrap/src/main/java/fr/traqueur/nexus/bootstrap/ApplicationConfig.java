@@ -6,6 +6,7 @@ import fr.traqueur.nexus.application.ports.out.EventRepository;
 import fr.traqueur.nexus.application.ports.out.WorkflowRepository;
 import fr.traqueur.nexus.application.registry.Registry;
 import fr.traqueur.nexus.application.services.EventService;
+import fr.traqueur.nexus.application.services.WorkflowService;
 import fr.traqueur.nexus.application.workflow.ActionDispatcher;
 import fr.traqueur.nexus.application.workflow.WorkflowEngine;
 import fr.traqueur.nexus.domain.events.Event;
@@ -57,5 +58,10 @@ public class ApplicationConfig {
     @Bean
     public EventService eventService(EventRepository events, EventFactory factory, WorkflowEngine workflows) {
         return new EventService(events, factory, workflows);
+    }
+
+    @Bean
+    public WorkflowService workflowService(WorkflowRepository workflows) {
+        return new WorkflowService(workflows);
     }
 }

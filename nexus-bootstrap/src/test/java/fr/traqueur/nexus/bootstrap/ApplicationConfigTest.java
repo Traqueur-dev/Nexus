@@ -1,11 +1,15 @@
 package fr.traqueur.nexus.bootstrap;
 
 import fr.traqueur.nexus.application.events.EventFactory;
+import fr.traqueur.nexus.application.ports.in.IngestEvent;
+import fr.traqueur.nexus.application.ports.in.ManageWorkflows;
+import fr.traqueur.nexus.application.ports.in.QueryEvents;
 import fr.traqueur.nexus.application.ports.out.ActionHandler;
 import fr.traqueur.nexus.application.ports.out.EventRepository;
 import fr.traqueur.nexus.application.ports.out.WorkflowRepository;
 import fr.traqueur.nexus.application.registry.Registry;
 import fr.traqueur.nexus.application.services.EventService;
+import fr.traqueur.nexus.application.services.WorkflowService;
 import fr.traqueur.nexus.application.workflow.ActionDispatcher;
 import fr.traqueur.nexus.application.workflow.WorkflowEngine;
 import fr.traqueur.nexus.application.registry.Registries;
@@ -71,6 +75,21 @@ class ApplicationConfigTest {
         }
 
         @Override
+        public Optional<Workflow> findById(String id) {
+            return Optional.empty();
+        }
+
+        @Override
+        public List<Workflow> findAll() {
+            return List.of();
+        }
+
+        @Override
+        public boolean deleteById(String id) {
+            return false;
+        }
+
+        @Override
         public List<Workflow> findTriggeredBy(EventType type) {
             return List.of();
         }
@@ -121,6 +140,19 @@ class ApplicationConfigTest {
             assertThat(context).hasSingleBean(EventFactory.class);
             assertThat(context).hasSingleBean(WorkflowEngine.class);
             assertThat(context).hasSingleBean(EventService.class);
+            assertThat(context).hasSingleBean(WorkflowService.class);
+        });
+    }
+
+    @Test
+    @DisplayName("should satisfy the inbound ports the driving adapters depend on")
+    void shouldSatisfyInboundPorts() {
+        // Controllers inject the port, not the service. A bean declared only under
+        // its concrete type would wire here and fail to inject there.
+        runner.run(context -> {
+            assertThat(context).hasSingleBean(QueryEvents.class);
+            assertThat(context).hasSingleBean(IngestEvent.class);
+            assertThat(context).hasSingleBean(ManageWorkflows.class);
         });
     }
 }

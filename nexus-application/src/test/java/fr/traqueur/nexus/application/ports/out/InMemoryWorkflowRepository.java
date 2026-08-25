@@ -5,6 +5,7 @@ import fr.traqueur.nexus.domain.workflow.Workflow;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -32,6 +33,21 @@ public class InMemoryWorkflowRepository implements WorkflowRepository {
     @Override
     public void save(Workflow workflow) {
         workflows.put(workflow.id(), workflow);
+    }
+
+    @Override
+    public Optional<Workflow> findById(String id) {
+        return Optional.ofNullable(workflows.get(id));
+    }
+
+    @Override
+    public List<Workflow> findAll() {
+        return List.copyOf(workflows.values());
+    }
+
+    @Override
+    public boolean deleteById(String id) {
+        return workflows.remove(id) != null;
     }
 
     @Override

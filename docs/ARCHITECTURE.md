@@ -152,6 +152,53 @@ That is what "zero dependencies" is protecting.
 
 ## 7. Decisions
 
+### ADR-011 — Write endpoints validate by construction, and address by PUT
+
+**Status:** accepted.
+
+The workflows API (#10) is the first endpoint that accepts a write, so two
+questions had to be answered once rather than per controller.
+
+**Validation lives in the domain type, not in annotations on the DTO.** The
+obvious move is Jakarta Bean Validation — `@NotEmpty` on `events`, `@NotNull` on
+`condition`, `@Valid` on the body. It was rejected: `Workflow` already refuses an
+empty event list, an empty action list and a missing condition in its compact
+constructor. Restating those rules on the DTO produces two definitions of a valid
+workflow, and only one of them is the one the engine trusts. They would drift the
+first time an invariant changed, and the API would be the copy that stayed wrong.
+
+**Decision:** the adapter builds the domain object and translates the failure.
+`WorkflowDtoMapper.toDomain` catches `IllegalArgumentException` and
+`NullPointerException` and raises `InvalidWorkflowException`, annotated
+`@ResponseStatus(BAD_REQUEST)`. Construction *is* the validation.
+
+The translation is not optional decoration. Without it the domain's refusal
+surfaces as a 500 — the server reporting that it broke, when in fact it rejected
+the request on purpose. That is the same reasoning, and the same placement, as
+`EventController.parseId` raising `InvalidEventIdException`.
+
+Unknown condition and action types need no handling at all: the registry-backed
+deserializer (ADR-009) fails while reading the body, and Spring already maps an
+unreadable body to 400.
+
+**Writes are `PUT /workflows/{id}`, and there is no `POST`.** A workflow id is
+chosen by the user and is meaningful — `notify-on-main-push`, not a generated key
+— and the store is an upsert (ADR-010). That makes a write idempotent and
+addressable, which is what PUT means. A `POST` to the collection would have to
+invent an id the caller did not ask for, and would split into "create" and
+"update" an operation the system performs once.
+
+**Consequences:** a first write and a replacement are indistinguishable to the
+client, so both answer 200 rather than 201-then-200. Telling them apart needs a
+read before every write to learn something the caller already knows, or a `save`
+on the inbound port that reports which happened — putting an HTTP status concern
+into the application layer. Neither is worth a status code.
+
+The cost of skipping Bean Validation is that a rejected request carries one
+message about the first broken invariant, not a field-by-field report. If the
+dashboard ever needs per-field errors, the answer is to enrich what the domain
+throws, not to re-declare the rules next to it.
+
 ### ADR-010 — Workflows are stored in PostgreSQL, not in a document store
 
 **Status:** accepted.

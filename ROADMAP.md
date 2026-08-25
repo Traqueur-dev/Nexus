@@ -38,14 +38,15 @@
 - [X] RabbitMQ integration
 - [X] Polymorphic JSON serialization — one registry-driven mechanism for
       contexts, conditions and actions (ADR-009)
-- [ ] Workflow persistence — the port exists and is answered by an in-memory
-      adapter; nothing survives a restart yet
+- [X] Workflow persistence — PostgreSQL, `TEXT[]` + GIN for the event types,
+      JSONB for the condition and action trees (ADR-010)
 - [ ] Redis cache — container provisioned, not wired
 
 ### API
 - [X] REST: read an event by id
 - [ ] REST: list and filter events (pagination)
-- [ ] REST endpoints for workflows
+- [X] REST endpoints for workflows — `GET`, `PUT`, `DELETE` on
+      `/api/v1/workflows` (ADR-011)
 - [ ] WebSocket real-time stream
 
 ---
