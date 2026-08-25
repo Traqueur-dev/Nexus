@@ -14,5 +14,16 @@ import java.util.List;
  */
 public interface WorkflowRepository {
 
+    /**
+     * Stores a workflow, replacing the one already carrying its id.
+     *
+     * <p>Deliberately an upsert, which is the opposite of what
+     * {@link EventRepository#save} owes its caller. The difference is not
+     * inconsistency: an event is a fact that happened, so overwriting one is data
+     * loss (#27), while a workflow is configuration the user edits, so refusing to
+     * overwrite it would make it uneditable.
+     */
+    void save(Workflow workflow);
+
     List<Workflow> findTriggeredBy(EventType type);
 }

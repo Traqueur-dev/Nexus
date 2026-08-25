@@ -202,7 +202,10 @@ hierarchy means adding a rule there.
   event (#27). The JPA adapter uses `EntityManager.persist()` plus an explicit
   `flush()`, so a duplicate id raises `EventAlreadyStoredException` instead —
   and the write costs one query less, since `save()` must SELECT first. The same
-  trap applies to any entity that must only ever be inserted.
+  trap applies to any entity that must only ever be inserted — but only to those.
+  `JpaWorkflowRepository` calls `save()` on purpose: a workflow is configuration
+  the user edits, so the upsert is the wanted behaviour, and copying the
+  `persist()` pattern there would make a workflow impossible to modify.
 - **Reflection**: event and condition instances are rebuilt reflectively from
   their record components. Renaming a record component is a silent breaking
   change — nothing fails at compile time.

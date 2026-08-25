@@ -152,6 +152,52 @@ That is what "zero dependencies" is protecting.
 
 ## 7. Decisions
 
+### ADR-010 — Workflows are stored in PostgreSQL, not in a document store
+
+**Status:** accepted.
+
+A `Workflow` is a document by shape: a fixed four-field record whose `condition`
+is an arbitrarily nested tree and whose `actions` are a heterogeneous list, both
+extensible by plugins. MongoDB was the obvious candidate, and was evaluated
+before writing the schema.
+
+**Decision:** PostgreSQL, with `TEXT[]` for the event types and `JSONB` for the
+condition and action trees.
+
+The deciding argument is type identity, not query ergonomics. Spring Data MongoDB
+resolves polymorphism by writing `_class` — a fully-qualified Java class name —
+which is the exact failure ADR-006 exists to prevent: a package move breaks every
+stored row. The standard remedy, `@TypeAlias`, is unavailable here, because it
+would put `org.springframework.data.annotation` into `nexus-domain`, which has no
+third-party dependency and ships as the plugin SDK. Even if it were available it
+would be a *second* identifier declared beside `@ConditionMetadata`, kept in sync
+by hand — the drift ADR-006 names.
+
+That leaves a custom `MongoTypeMapper` reading the `Registry`: rebuilding
+`RegistryBackedSerialization` against BSON, one week after ADR-009 deleted the
+duplicate mechanism. The remaining option — storing the workflow as an opaque
+JSON string in Mongo — discards the only reason to have chosen Mongo.
+
+Meanwhile the capability Mongo was wanted for is already present. `events.context`
+and `events.payload` have been `jsonb` with GIN indexes since V1, and the one
+query the port exposes, `findTriggeredBy`, is `events @> ARRAY[?]` served from a
+GIN index.
+
+**Consequences:** one datastore to run, back up and deploy, and one serialization
+mechanism rather than two. The cost is that querying *inside* a condition tree
+means `jsonb` path expressions rather than Mongo's query language. Acceptable at
+this size — workflows number in the hundreds, and no use case queries into a tree;
+if one appears, filtering in Java after `findTriggeredBy` is still cheap.
+
+The domain invariants on `Workflow` are restated as `CHECK` constraints. The
+duplication is deliberate: the record protects what it constructs, the schema
+protects what a migration or a future adapter writes.
+
+`save()` is a plain upsert here, deliberately unlike `JpaEventRepository`, which
+goes out of its way to avoid it (#27, ADR-008). The difference is the data, not
+the technology: an event is a fact, so an UPDATE is silent loss; a workflow is
+configuration the user edits, so refusing an UPDATE would make it uneditable.
+
 ### ADR-009 — One registry-backed mechanism for every polymorphic hierarchy
 
 **Status:** accepted.

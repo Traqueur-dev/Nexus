@@ -1,5 +1,6 @@
 package fr.traqueur.nexus.application.services;
 
+import fr.traqueur.nexus.application.ports.out.InMemoryWorkflowRepository;
 import fr.traqueur.nexus.application.registry.Registries;
 import fr.traqueur.nexus.application.events.EventFactory;
 import fr.traqueur.nexus.application.ports.in.IngestEventCommand;
@@ -74,7 +75,7 @@ class EventServiceTest {
     @BeforeEach
     void setUp() {
         repository = new InMemoryEventRepository();
-        WorkflowRepository noWorkflows = (EventType type) -> List.of();
+        WorkflowRepository noWorkflows = new InMemoryWorkflowRepository();
         service = new EventService(repository, new EventFactory(Registries.events()),
                 new WorkflowEngine(noWorkflows, new ActionDispatcher(Registries.actions(), List.of())));
     }

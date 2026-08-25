@@ -10,9 +10,11 @@ import fr.traqueur.nexus.application.workflow.ActionDispatcher;
 import fr.traqueur.nexus.application.workflow.WorkflowEngine;
 import fr.traqueur.nexus.application.registry.Registries;
 import fr.traqueur.nexus.domain.events.Event;
+import fr.traqueur.nexus.domain.events.EventType;
 import fr.traqueur.nexus.domain.events.discord.DiscordContext;
 import fr.traqueur.nexus.domain.events.discord.events.DiscordMessageReceived;
 import fr.traqueur.nexus.domain.events.EventMetadata;
+import fr.traqueur.nexus.domain.workflow.Workflow;
 import fr.traqueur.nexus.domain.workflow.actions.SendEmailAction;
 import fr.traqueur.nexus.domain.workflow.exceptions.ActionExecutionException;
 import org.junit.jupiter.api.DisplayName;
@@ -41,7 +43,7 @@ class ApplicationConfigTest {
             .withBean("eventRegistry", Registry.class, Registries::events)
             .withBean("actionRegistry", Registry.class, Registries::actions)
             .withBean(EventRepository.class, StubEventRepository::new)
-            .withBean(WorkflowRepository.class, () -> type -> List.of());
+            .withBean(WorkflowRepository.class, StubWorkflowRepository::new);
 
     private static final Event EVENT = new DiscordMessageReceived(
             Event.Id.generate("discord"), new DiscordContext(),
@@ -60,6 +62,17 @@ class ApplicationConfigTest {
         @Override
         public Optional<Event> findLatestBySource(String source) {
             return Optional.empty();
+        }
+    }
+
+    static class StubWorkflowRepository implements WorkflowRepository {
+        @Override
+        public void save(Workflow workflow) {
+        }
+
+        @Override
+        public List<Workflow> findTriggeredBy(EventType type) {
+            return List.of();
         }
     }
 
