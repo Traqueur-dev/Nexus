@@ -152,6 +152,51 @@ That is what "zero dependencies" is protecting.
 
 ## 7. Decisions
 
+### ADR-009 — One registry-backed mechanism for every polymorphic hierarchy
+
+**Status:** accepted.
+
+There were two mechanisms for the same problem, and the weaker one was the one
+whose limitation was written down in a comment.
+
+`Condition` used a registry-driven serializer pair that looked the type up inside
+`deserialize()`. `Context` used a `@JsonTypeInfo` mixin whose subtype list was
+fed from the registry when the `ObjectMapper` was built. ADR-001 had already
+removed the hardcoded `@JsonSubTypes` there; what replaced it was a *snapshot* of
+a live registry, which is the same closure moved one level up. A plugin
+registering `SlackContext` at T+5min is in the registry, satisfies
+`Context.source()`, and still fails to deserialize.
+
+The plugin loader could not have fixed that from the outside. Rebuilding the
+mapper invalidates every bean already holding a reference to it —
+`EventEntityMapper`, `EventConsumer`, the message converters — and the only other
+route is reaching into Jackson's subtype resolver. The correct mechanism already
+existed in the repository, forty lines away, hardcoded to one hierarchy.
+
+**Decision:** `RegistryBackedSerialization`, generic over the base type, its
+registry and its discriminator property. Contexts (`source`), conditions (`type`)
+and actions (`type`) all use it. `ContextMixin` and `registerContextSubtypes` are
+deleted; startup-time subtype registration disappears as a concept, and a fourth
+hierarchy is one `register(...)` line rather than a fourth mechanism.
+
+The wire format is unchanged — the discriminator is still written inline as a
+property, which is what `@JsonTypeInfo(As.PROPERTY)` produced — so stored rows
+and queued messages are unaffected.
+
+**Consequences:** the constraint this trades into is that a polymorphic type must
+be a **record**. Serialization walks record components rather than delegating to
+the mapper, because delegating re-enters the same serializer and recurses. That
+was already true of conditions and already assumed by `EventFactory`, which
+rebuilds an event from its components; it is now stated rather than implied, and
+`OpenHierarchyTest` fails the build on a non-record. A plugin's types are only
+visible at runtime, so the serializer also refuses one with a message naming the
+class — loud rather than lossy, since the previous mechanism would have written
+such a type as nothing but its discriminator and failed on the read instead.
+
+Actions are registered here although nothing serializes one yet. The alternative
+was to decide their format while writing the workflow store (#6), which is the
+worst moment to decide a persisted contract.
+
 ### ADR-008 — Event identifiers are UUID version 7, and writes only insert
 
 **Status:** accepted.
@@ -408,9 +453,9 @@ architecture.
 
 All seven steps are done. The rules ArchUnit adds are the ones a module boundary
 cannot express: a framework annotation leaking into the domain, layering inside a
-module, one adapter package reaching into another (ADR-007), and an open
-hierarchy whose type forgot its identifier (ADR-006) — a failure that otherwise
-surfaces at runtime, on ingestion, far from its cause.
+module, one adapter package reaching into another (ADR-007), an open hierarchy
+whose type forgot its identifier (ADR-006) or is not a record (ADR-009) — failures
+that otherwise surface at runtime, on ingestion, far from their cause.
 
 Each rule carries a `because` clause stating what it protects, so a failing build
 explains the constraint rather than only naming the violated line. One test
